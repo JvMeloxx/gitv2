@@ -65,8 +65,12 @@ export default function LoginPage() {
                                 required
                             />
                         </div>
-                        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-                        <Button type="submit" className="w-full" disabled={loading}>
+                        {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded border border-red-100">{error}</p>}
+                        <Button
+                            type="submit"
+                            className="w-full bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold py-2 rounded-lg transition-all transform hover:scale-[1.02]"
+                            disabled={loading}
+                        >
                             {loading ? "Entrando..." : "Entrar"}
                         </Button>
                     </form>

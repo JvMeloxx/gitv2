@@ -80,6 +80,7 @@ export default function RegisterPage() {
                                 required
                             />
                         </div>
+                        {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded border border-red-100">{error}</p>}
                         <Button
                             type="submit"
                             variant="default"
