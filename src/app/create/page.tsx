@@ -9,6 +9,7 @@ import { createGiftList } from "@/app/actions";
 import { EventType } from "@/lib/types";
 
 export default function CreateList() {
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         eventType: "wedding" as EventType,
@@ -20,6 +21,7 @@ export default function CreateList() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
         setLoading(true);
 
         try {
@@ -36,6 +38,7 @@ export default function CreateList() {
                 throw error;
             }
             console.error(error);
+            setError("Erro ao criar lista. Verifique a conexão com o banco de dados.");
             setLoading(false);
         }
     };
@@ -117,6 +120,7 @@ export default function CreateList() {
                             />
                         </div>
 
+                        {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded border border-red-100 mb-4">{error}</p>}
                         <Button
                             type="submit"
                             className="w-full bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold py-2 rounded-lg transition-all transform hover:scale-[1.02]"
