@@ -23,12 +23,19 @@ export default function RegisterPage() {
             const result = await registerUser(name, email, password);
             if (result?.error) {
                 setError(result.error);
+                setLoading(false);
             }
+            // If success, Next.js handles the redirect from the server action
         } catch (err) {
+            // Next.js redirect throws an error, we should only handle real errors here.
+            // But usually we should let it propagate or use isRedirectError.
+            // For simplicity in this demo, we'll only set error if it doesn't look like a redirect.
+            if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+                throw err;
+            }
             setError("Ocorreu um erro ao criar a conta. Tente novamente.");
-            console.error(err);
-        } finally {
             setLoading(false);
+            console.error(err);
         }
     };
 
@@ -73,8 +80,12 @@ export default function RegisterPage() {
                                 required
                             />
                         </div>
-                        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-                        <Button type="submit" className="w-full" disabled={loading}>
+                        <Button
+                            type="submit"
+                            variant="default"
+                            className="w-full font-semibold py-2 rounded-lg transition-all transform hover:scale-[1.02] bg-[#e11d48] text-white"
+                            disabled={loading}
+                        >
                             {loading ? "Criando conta..." : "Criar Conta"}
                         </Button>
                     </form>

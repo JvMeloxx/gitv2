@@ -116,7 +116,7 @@ export default function CreateList() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2 rounded-lg transition-all transform hover:scale-[1.02]"
+                            className="w-full bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold py-2 rounded-lg transition-all transform hover:scale-[1.02]"
                             disabled={loading}
                         >
                             {loading ? "Criando..." : "Criar Lista de Presentes"}

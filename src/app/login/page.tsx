@@ -22,10 +22,14 @@ export default function LoginPage() {
             const result = await loginUser(email, password);
             if (result?.error) {
                 setError(result.error);
+                setLoading(false);
             }
         } catch (err) {
-            setError("Ocorreu um erro ao tentar entrar. Tente novamente.");
-            console.error(err);
+            if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+                throw err;
+            }
+            setError("Credenciais inválidas ou erro no servidor.");
+            setLoading(false);
         } finally {
             setLoading(false);
         }
