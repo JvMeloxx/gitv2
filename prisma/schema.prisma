@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime   @default(now())
+  lists        GiftList[]
+}
+
+model GiftList {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  title         String
+  organizerName String
+  eventType     String
+  eventDate     String
+  location      String?
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  gifts         Gift[]
+}
+
+model Gift {
+  id             String      @id @default(uuid())
+  listId         String
+  list           GiftList    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  name           String
+  category       String
+  description    String?
+  imageUrl       String?
+  priceEstimate  Float?
+  buyLink        String?
+  quantityNeeded Int         @default(1)
+  selections     Selection[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model Selection {
+  id           String   @id @default(uuid())
+  giftId       String
+  gift         Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  guestName    String
+  guestContact String?
+  message      String?
+  quantity     Int      @default(1)
+  createdAt    DateTime @default(now())
+}
