@@ -32,6 +32,9 @@ export default function CreateList() {
             });
             // Redirect is handled in server action
         } catch (error) {
+            if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+                throw error;
+            }
             console.error(error);
             setLoading(false);
         }
