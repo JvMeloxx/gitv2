@@ -1,4 +1,4 @@
-export type ThemeType = "default" | "romantic" | "modern" | "baby" | "party" | "nature";
+export type ThemeType = "default" | "romantic" | "modern" | "baby" | "party" | "nature" | "dark" | "rustic" | "lavender";
 
 export interface ThemeColors {
     primary: string;
@@ -63,6 +63,33 @@ export const VISUAL_THEMES: Record<ThemeType, ThemeColors> = {
         background: "#f0fdf4",
         card: "#ffffff",
         text: "#064e3b",
+        buttonText: "#ffffff"
+    },
+    dark: {
+        primary: "#f43f5e", // Bright Rose on Dark
+        secondary: "#1e293b",
+        accent: "#fb7185",
+        background: "#0f172a",
+        card: "#1e293b",
+        text: "#f8fafc",
+        buttonText: "#ffffff"
+    },
+    rustic: {
+        primary: "#b45309", // Amber/Wood
+        secondary: "#fef3c7",
+        accent: "#92400e",
+        background: "#fffbf0",
+        card: "#ffffff",
+        text: "#451a03",
+        buttonText: "#ffffff"
+    },
+    lavender: {
+        primary: "#7c3aed", // Soft Purple
+        secondary: "#f5f3ff",
+        accent: "#6d28d9",
+        background: "#faf5ff",
+        card: "#ffffff",
+        text: "#4c1d95",
         buttonText: "#ffffff"
     }
 };

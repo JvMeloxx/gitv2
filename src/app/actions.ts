@@ -26,7 +26,7 @@ export async function registerUser(name: string, email: string, password: string
                 name,
                 email,
                 passwordHash,
-            }
+            },
         });
 
         await login(user.id);
@@ -77,6 +77,13 @@ export async function createGiftList(formData: {
     backgroundImageUrl?: string;
     organizerPhone?: string;
     organizerEmail?: string;
+    selectedGifts?: {
+        name: string;
+        category: string;
+        description?: string;
+        quantityNeeded: number;
+        imageUrl?: string;
+    }[];
 }) {
     try {
         const session = await getSession();
@@ -92,18 +99,24 @@ export async function createGiftList(formData: {
             theme,
             backgroundImageUrl,
             organizerPhone,
-            organizerEmail
+            organizerEmail,
+            selectedGifts
         } = formData;
 
-        // Generate template items
-        const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
-        const initialGifts = template.items.map(item => ({
-            name: item.name,
-            category: item.category,
-            description: item.description,
-            quantityNeeded: item.quantityNeeded,
-            imageUrl: item.imageUrl,
-        }));
+        // Use selected gifts if provided, otherwise fallback to template logic or empty
+        let initialGiftsData: any[] = [];
+        if (selectedGifts && selectedGifts.length > 0) {
+            initialGiftsData = selectedGifts;
+        } else if (eventType !== 'other') {
+            const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
+            initialGiftsData = template.items.map(item => ({
+                name: item.name,
+                category: item.category,
+                description: item.description,
+                quantityNeeded: item.quantityNeeded,
+                imageUrl: item.imageUrl,
+            }));
+        }
 
         const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${nanoid(4)}`;
 
@@ -122,7 +135,7 @@ export async function createGiftList(formData: {
                 backgroundImageUrl,
                 userId, // Connect to user if authenticated
                 gifts: {
-                    create: initialGifts
+                    create: initialGiftsData
                 }
             }
         });

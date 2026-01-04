@@ -5,7 +5,7 @@ import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { Gift as GiftIcon, MapPin, Calendar } from "lucide-react";
+import { Gift as GiftIcon, MapPin, Calendar, Search, Filter, X } from "lucide-react";
 import { selectGift, cancelSelection } from "@/app/actions";
 import { VISUAL_THEMES, ThemeType, BACKGROUND_PATTERNS, PatternType } from "@/lib/themes";
 import { useEffect } from "react";
@@ -52,6 +52,9 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [mySelectionIds, setMySelectionIds] = useState<string[]>([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState("all");
+    const [priceFilter, setPriceFilter] = useState("all");
 
     useEffect(() => {
         const saved = localStorage.getItem("myGifts2Selections");
@@ -159,6 +162,28 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const patternKey = (list.backgroundImageUrl as PatternType) || "none";
     const pattern = BACKGROUND_PATTERNS[patternKey] || BACKGROUND_PATTERNS.none;
 
+    const categories = ["all", ...new Set(list.gifts.map(g => g.category))];
+
+    const filteredGifts = list.gifts.filter(gift => {
+        const matchesSearch = gift.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = activeCategory === "all" || gift.category === activeCategory;
+
+        let matchesPrice = true;
+        const price = gift.priceEstimate || 0;
+        if (priceFilter === "under100") matchesPrice = price < 100;
+        else if (priceFilter === "100-500") matchesPrice = price >= 100 && price <= 500;
+        else if (priceFilter === "over500") matchesPrice = price > 500;
+
+        return matchesSearch && matchesCategory && matchesPrice;
+    });
+
+    const priceRanges = [
+        { label: "Qualquer preço", value: "all" },
+        { label: "Até R$ 100", value: "under100" },
+        { label: "R$ 100 - R$ 500", value: "100-500" },
+        { label: "Acima de R$ 500", value: "over500" },
+    ];
+
     return (
         <div className="min-h-screen relative transition-colors duration-500" style={{ backgroundColor: theme.background }}>
             {/* Curated Fixed Background Pattern */}
@@ -198,17 +223,69 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <div className="pt-4 pb-8">
                         <Button
                             onClick={() => setIsRSVPModalOpen(true)}
-                            className="text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg transform hover:scale-105 transition-all"
+                            className="text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg transform hover:scale-105 transition-all w-full sm:w-auto"
                             style={{ backgroundColor: "#25D366" }}
                         >
                             Confirmar Presença
                         </Button>
                     </div>
+
+                    {/* Filters Section */}
+                    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 space-y-6 animate-in fade-in duration-700">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Input
+                                    placeholder="Buscar presente..."
+                                    className="pl-10 h-12 bg-white/50 border-gray-100 rounded-xl"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                {searchQuery && (
+                                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <X className="w-4 h-4 text-gray-400" />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                                {priceRanges.map((range) => (
+                                    <button
+                                        key={range.value}
+                                        onClick={() => setPriceFilter(range.value)}
+                                        className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all border ${priceFilter === range.value
+                                                ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        {range.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <div className="flex items-center gap-2 mr-2 text-gray-500 text-sm font-medium">
+                                <Filter className="w-4 h-4" /> Filtros:
+                            </div>
+                            {categories.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${activeCategory === cat
+                                            ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
+                                            : 'bg-white text-gray-500 border-gray-100 hover:border-pink-200 hover:text-pink-500'
+                                        }`}
+                                >
+                                    {cat === "all" ? "Todos" : cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {list.gifts.map((gift) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-[400px]">
+                    {filteredGifts.length > 0 ? filteredGifts.map((gift) => (
                         <GiftCard
                             key={gift.id}
                             gift={calculateProgress(gift) as any}
@@ -223,7 +300,17 @@ export function GuestListClient({ list }: GuestListClientProps) {
                                 setError("");
                             }}
                         />
-                    ))}
+                    )) : (
+                        <div className="col-span-full py-20 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-white/50">
+                            <p className="text-gray-500 text-lg">Nenhum presente encontrado com esses filtros.</p>
+                            <button
+                                onClick={() => { setSearchQuery(""); setActiveCategory("all"); setPriceFilter("all"); }}
+                                className="mt-4 text-pink-500 font-bold hover:underline"
+                            >
+                                Limpar filtros
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Selection Modal */}

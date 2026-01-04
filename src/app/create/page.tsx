@@ -7,8 +7,10 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createGiftList } from "@/app/actions";
 import { EventType } from "@/lib/types";
-import { Camera, Image as ImageIcon } from "lucide-react";
+import { Camera, Image as ImageIcon, CheckCircle2, Circle } from "lucide-react";
 import { resizeImage } from "@/lib/images";
+import { GIFT_TEMPLATES } from "@/lib/templates";
+import { useEffect } from "react";
 
 export default function CreateList() {
     const [error, setError] = useState("");
@@ -25,6 +27,23 @@ export default function CreateList() {
         organizerPhone: "",
         organizerEmail: "",
     });
+
+    const [selectedTemplateItems, setSelectedTemplateItems] = useState<string[]>([]);
+
+    useEffect(() => {
+        const template = GIFT_TEMPLATES[formData.eventType];
+        if (template) {
+            setSelectedTemplateItems(template.items.map(i => i.name));
+        } else {
+            setSelectedTemplateItems([]);
+        }
+    }, [formData.eventType]);
+
+    const toggleItem = (name: string) => {
+        setSelectedTemplateItems(prev =>
+            prev.includes(name) ? prev.filter(i => i !== name) : [...prev, name]
+        );
+    };
 
 
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "coverImageUrl" | "backgroundImageUrl") => {
@@ -58,6 +77,17 @@ export default function CreateList() {
                 coverImageUrl: formData.coverImageUrl,
                 theme: formData.theme,
                 backgroundImageUrl: formData.backgroundImageUrl,
+                organizerPhone: formData.organizerPhone,
+                organizerEmail: formData.organizerEmail,
+                selectedGifts: GIFT_TEMPLATES[formData.eventType]?.items
+                    .filter(i => selectedTemplateItems.includes(i.name))
+                    .map(i => ({
+                        name: i.name,
+                        category: i.category,
+                        description: i.description,
+                        quantityNeeded: i.quantityNeeded,
+                        imageUrl: i.imageUrl
+                    }))
             });
         } catch (error) {
             if (error instanceof Error && error.message === "NEXT_REDIRECT") {
@@ -95,6 +125,53 @@ export default function CreateList() {
                                 <option value="other">Outro</option>
                             </Select>
                         </div>
+
+                        {/* Template Recommendations */}
+                        {formData.eventType !== 'other' && GIFT_TEMPLATES[formData.eventType] && (
+                            <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-bold text-gray-900">
+                                        Sugestões Mágicas ✨
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const all = GIFT_TEMPLATES[formData.eventType].items.map(i => i.name);
+                                            setSelectedTemplateItems(selectedTemplateItems.length === all.length ? [] : all);
+                                        }}
+                                        className="text-xs text-pink-500 font-medium hover:underline"
+                                    >
+                                        {selectedTemplateItems.length === GIFT_TEMPLATES[formData.eventType].items.length ? "Desmarcar todos" : "Marcar todos"}
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                                    {GIFT_TEMPLATES[formData.eventType].items.map((item) => {
+                                        const isSelected = selectedTemplateItems.includes(item.name);
+                                        return (
+                                            <button
+                                                key={item.name}
+                                                type="button"
+                                                onClick={() => toggleItem(item.name)}
+                                                className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all ${isSelected
+                                                    ? 'bg-pink-50 border-pink-200 ring-1 ring-pink-100'
+                                                    : 'bg-gray-50 border-gray-100 opacity-60 grayscale'
+                                                    }`}
+                                            >
+                                                <div className="flex-shrink-0">
+                                                    {isSelected ? <CheckCircle2 className="w-4 h-4 text-pink-500" /> : <Circle className="w-4 h-4 text-gray-300" />}
+                                                </div>
+                                                <span className={`text-xs truncate ${isSelected ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
+                                                    {item.name}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-gray-400 italic">
+                                    Dica: Itens selecionados serão adicionados automaticamente à sua lista.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <label htmlFor="organizerName" className="text-sm font-medium text-gray-700 block">
@@ -221,6 +298,9 @@ export default function CreateList() {
                                     { id: "baby", label: "Bebê", color: "bg-sky-400" },
                                     { id: "party", label: "Festa", color: "bg-violet-600" },
                                     { id: "nature", label: "Natureza", color: "bg-green-600" },
+                                    { id: "dark", label: "Noturno", color: "bg-indigo-950 shadow-inner border-indigo-500/30" },
+                                    { id: "rustic", label: "Rústico", color: "bg-amber-800" },
+                                    { id: "lavender", label: "Lavanda", color: "bg-purple-400" },
                                 ].map((t) => (
                                     <button
                                         key={t.id}

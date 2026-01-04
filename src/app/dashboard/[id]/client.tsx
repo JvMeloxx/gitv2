@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye } from "lucide-react";
+import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye, MessageSquareHeart, UserCheck, Calendar } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { addGift, updateGift, deleteGift } from "@/app/actions";
 import { resizeImage } from "@/lib/images";
@@ -60,7 +60,7 @@ type DashboardClientProps = {
 export function DashboardClient({ list }: DashboardClientProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingGift, setEditingGift] = useState<GiftWithSelection | null>(null);
-    const [activeTab, setActiveTab] = useState<"gifts" | "attendances">("gifts");
+    const [activeTab, setActiveTab] = useState<"gifts" | "attendances" | "mural">("gifts");
 
     // Form state
     const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
@@ -210,6 +210,14 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     Convidados ({list.attendances.length})
                     {activeTab === "attendances" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-600" />}
                 </button>
+                <button
+                    onClick={() => setActiveTab("mural")}
+                    className={`pb-4 text-sm font-semibold transition-colors relative ${activeTab === "mural" ? "text-pink-600" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                >
+                    Mural de Recados
+                    {activeTab === "mural" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-600" />}
+                </button>
             </div>
 
             {activeTab === "gifts" ? (
@@ -278,7 +286,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                         )}
                     </div>
                 </>
-            ) : (
+            ) : activeTab === "attendances" ? (
                 <div className="space-y-8 animate-in fade-in duration-500">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
@@ -343,6 +351,55 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     ) : (
                         <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
                             <p className="text-gray-400">Ainda não há confirmações de presença.</p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="bg-pink-100 p-3 rounded-full">
+                            <MessageSquareHeart className="w-6 h-6 text-pink-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">Mural de Carinho</h2>
+                            <p className="text-gray-500">Recados deixados pelos seus convidados ao escolher um presente.</p>
+                        </div>
+                    </div>
+
+                    {list.gifts.some(g => g.selections.some(s => s.message)) ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {list.gifts.flatMap(gift =>
+                                gift.selections.filter(s => s.message).map((selection, idx) => (
+                                    <div key={`${gift.id}-${idx}`} className="bg-white p-6 rounded-2xl shadow-sm border border-pink-50 relative overflow-hidden group hover:shadow-md transition-shadow">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                            <MessageSquareHeart className="w-12 h-12 text-pink-500" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="bg-pink-50 p-2 rounded-full">
+                                                <UserCheck className="w-4 h-4 text-pink-500" />
+                                            </div>
+                                            <span className="font-bold text-gray-900">{selection.guestName}</span>
+                                        </div>
+                                        <p className="text-gray-700 italic leading-relaxed mb-4 relative z-10">
+                                            "{selection.message}"
+                                        </p>
+                                        <div className="flex items-center justify-between mt-auto pt-4 border-top border-gray-50">
+                                            <span className="text-xs font-medium text-pink-500 bg-pink-50 px-2 py-1 rounded-md">
+                                                🎁 {gift.name}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 flex flex-col items-center">
+                            <div className="bg-gray-50 p-4 rounded-full mb-4">
+                                <MessageSquareHeart className="w-8 h-8 text-gray-300" />
+                            </div>
+                            <p className="text-gray-400 max-w-sm">
+                                As mensagens que seus convidados deixarem ao escolher um presente aparecerão aqui. Compartilhe sua lista!
+                            </p>
                         </div>
                     )}
                 </div>
