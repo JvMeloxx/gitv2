@@ -19,6 +19,8 @@ export default function CreateList() {
         eventDate: "",
         location: "",
         coverImageUrl: "",
+        theme: "default",
+        backgroundImageUrl: "",
     });
 
     const resizeImage = (file: File): Promise<string> => {
@@ -56,14 +58,14 @@ export default function CreateList() {
         });
     };
 
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, field: "coverImageUrl" | "backgroundImageUrl") => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         try {
             setLoading(true);
             const compressedBase64 = await resizeImage(file);
-            setFormData(prev => ({ ...prev, coverImageUrl: compressedBase64 }));
+            setFormData(prev => ({ ...prev, [field]: compressedBase64 }));
         } catch (err) {
             console.error("Error resizing image:", err);
             setError("Erro ao processar imagem. Tente outra foto.");
@@ -85,6 +87,8 @@ export default function CreateList() {
                 eventDate: formData.eventDate,
                 location: formData.location,
                 coverImageUrl: formData.coverImageUrl,
+                theme: formData.theme,
+                backgroundImageUrl: formData.backgroundImageUrl,
             });
         } catch (error) {
             if (error instanceof Error && error.message === "NEXT_REDIRECT") {
@@ -196,14 +200,70 @@ export default function CreateList() {
                                             type="file"
                                             accept="image/*"
                                             className="hidden"
-                                            onChange={handleImageChange}
+                                            onChange={(e) => handleImageChange(e, "coverImageUrl")}
                                         />
                                     </label>
                                 </div>
                                 <div className="flex-1 text-sm text-gray-500">
-                                    <p className="font-medium text-gray-700">Subir foto do Celular ou PC</p>
+                                    <p className="font-medium text-gray-700">Foto Redonda de Perfil</p>
                                     <p>Clique no ícone da câmera para escolher uma foto especial.</p>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Theme Selection */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium text-gray-700 block">
+                                Escolha um Tema Visual
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[
+                                    { id: "default", label: "Padrão", color: "bg-rose-500" },
+                                    { id: "romantic", label: "Romântico", color: "bg-fuchsia-700" },
+                                    { id: "modern", label: "Moderno", color: "bg-slate-900" },
+                                    { id: "baby", label: "Bebê", color: "bg-sky-400" },
+                                    { id: "party", label: "Festa", color: "bg-violet-600" },
+                                    { id: "nature", label: "Natureza", color: "bg-green-600" },
+                                ].map((t) => (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, theme: t.id })}
+                                        className={`p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${formData.theme === t.id ? "border-pink-500 bg-pink-50" : "border-gray-100 hover:border-pink-200"
+                                            }`}
+                                    >
+                                        <div className={`w-6 h-6 rounded-full ${t.color}`} />
+                                        <span className="text-[10px] font-medium">{t.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Background Selection */}
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium text-gray-700 block">
+                                Imagem de Fundo (Opcional)
+                            </label>
+                            <div className="relative w-full h-24 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden hover:border-pink-300 transition-colors group">
+                                {formData.backgroundImageUrl ? (
+                                    <>
+                                        <img src={formData.backgroundImageUrl} alt="Background Preview" className="w-full h-full object-cover opacity-50" />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
+                                            <span className="bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">Alterar Fundo</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-1 text-gray-400">
+                                        <ImageIcon className="w-6 h-6" />
+                                        <span className="text-xs font-medium">Subir foto de fundo (Fixo)</span>
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => handleImageChange(e, "backgroundImageUrl")}
+                                />
                             </div>
                         </div>
 

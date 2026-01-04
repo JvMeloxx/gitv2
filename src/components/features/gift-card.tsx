@@ -10,9 +10,10 @@ interface GiftCardProps {
     onEdit?: (gift: Gift) => void;
     onDelete?: (giftId: string) => void;
     onSelect?: (gift: Gift) => void;
+    primaryColor?: string;
 }
 
-export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect }: GiftCardProps) {
+export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor }: GiftCardProps) {
     const isFullySelected = gift.quantitySelected >= gift.quantityNeeded;
 
     return (
@@ -96,7 +97,8 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                     </>
                 ) : (
                     <Button
-                        className="w-full bg-primary hover:bg-primary/90"
+                        className="w-full"
+                        style={primaryColor && !isFullySelected ? { backgroundColor: primaryColor } : {}}
                         disabled={isFullySelected}
                         onClick={() => onSelect?.(gift)}
                     >

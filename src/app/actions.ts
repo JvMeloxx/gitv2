@@ -73,12 +73,23 @@ export async function createGiftList(formData: {
     eventDate: string;
     location?: string;
     coverImageUrl?: string;
+    theme?: string;
+    backgroundImageUrl?: string;
 }) {
     try {
         const session = await getSession();
         const userId = session?.userId;
 
-        const { eventType, organizerName, title, eventDate, location, coverImageUrl } = formData;
+        const {
+            eventType,
+            organizerName,
+            title,
+            eventDate,
+            location,
+            coverImageUrl,
+            theme,
+            backgroundImageUrl
+        } = formData;
 
         // Generate template items
         const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
@@ -101,6 +112,8 @@ export async function createGiftList(formData: {
                 eventDate,
                 location,
                 coverImageUrl,
+                theme: theme || "default",
+                backgroundImageUrl,
                 userId, // Connect to user if authenticated
                 gifts: {
                     create: initialGifts

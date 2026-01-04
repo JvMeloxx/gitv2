@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Gift as GiftIcon, MapPin, Calendar } from "lucide-react";
 import { selectGift } from "@/app/actions";
+import { VISUAL_THEMES, ThemeType } from "@/lib/themes";
 
 // Match Prisma type
 type GiftWithSelection = {
@@ -33,6 +34,8 @@ type GuestListClientProps = {
         eventDate: string;
         location: string | null;
         coverImageUrl: string | null;
+        theme: string;
+        backgroundImageUrl: string | null;
         gifts: GiftWithSelection[];
     };
 };
@@ -101,175 +104,193 @@ export function GuestListClient({ list }: GuestListClientProps) {
         setLoading(false);
     };
 
+    const themeKey = (list.theme as ThemeType) || "default";
+    const theme = VISUAL_THEMES[themeKey] || VISUAL_THEMES.default;
+
     return (
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="text-center mb-12 space-y-4">
-                <div className="inline-flex items-center justify-center mb-2">
-                    {list.coverImageUrl ? (
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-pink-50">
-                            <img
-                                src={list.coverImageUrl}
-                                alt={list.title}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                    ) : (
-                        <div className="p-4 bg-pink-100/50 rounded-full">
-                            <GiftIcon className="w-10 h-10 text-pink-500" />
-                        </div>
-                    )}
-                </div>
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{list.title}</h1>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-gray-600">
-                    <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {list.eventDate}</span>
-                    {list.location && <span className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {list.location}</span>}
-                </div>
-                <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-                    Organizado por {list.organizerName}. Escolha um presente para tornar o dia deles especial!
-                </p>
-                <div className="pt-4 pb-8">
-                    <Button
-                        onClick={() => setIsRSVPModalOpen(true)}
-                        className="bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg shadow-green-100 transform hover:scale-105 transition-all"
-                    >
-                        Confirmar Presença
-                    </Button>
-                </div>
-            </div>
+        <div className="min-h-screen relative transition-colors duration-500" style={{ backgroundColor: theme.background }}>
+            {/* Custom Fixed Background Image */}
+            {list.backgroundImageUrl && (
+                <div
+                    className="fixed inset-0 z-0 pointer-events-none opacity-40 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: `url(${list.backgroundImageUrl})`,
+                        backgroundAttachment: 'fixed'
+                    }}
+                />
+            )}
 
-            {/* Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {list.gifts.map((gift) => (
-                    <GiftCard
-                        key={gift.id}
-                        gift={calculateProgress(gift) as any}
-                        isOrganizer={false}
-                        onSelect={(g) => {
-                            setSelectedGift(gift);
-                            setGuestForm(prev => ({ ...prev, quantity: 1 }));
-                            setError("");
-                        }}
-                    />
-                ))}
-            </div>
-
-            {/* Selection Modal */}
-            <Modal
-                isOpen={!!selectedGift}
-                onClose={() => setSelectedGift(null)}
-                title={`Presentear ${selectedGift?.name}`}
-                description="Confirme seus dados para que o organizador saiba quem agradecer."
-            >
-                <form onSubmit={handleSelectGift} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
-                        <Input required value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })} placeholder="ex: Tia Maria" />
+            <div className="relative z-10 max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="text-center mb-12 space-y-4">
+                    <div className="inline-flex items-center justify-center mb-2">
+                        {list.coverImageUrl ? (
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white flex-shrink-0">
+                                <img
+                                    src={list.coverImageUrl}
+                                    alt={list.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div className="p-4 rounded-full" style={{ backgroundColor: `${theme.primary}15` }}>
+                                <GiftIcon className="w-10 h-10" style={{ color: theme.primary }} />
+                            </div>
+                        )}
                     </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Contato (Email/WhatsApp - Opcional)</label>
-                        <Input value={guestForm.contact} onChange={e => setGuestForm({ ...guestForm, contact: e.target.value })} />
+                    <h1 className="text-4xl font-extrabold tracking-tight" style={{ color: theme.text }}>{list.title}</h1>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-80" style={{ color: theme.text }}>
+                        <span className="flex items-center gap-2 font-medium"><Calendar className="w-4 h-4" /> {list.eventDate}</span>
+                        {list.location && <span className="flex items-center gap-2 font-medium"><MapPin className="w-4 h-4" /> {list.location}</span>}
                     </div>
-
-                    {selectedGift && (
-                        (() => {
-                            const stats = calculateProgress(selectedGift);
-                            const remaining = stats.quantityNeeded - stats.quantitySelected;
-                            if (remaining > 1) {
-                                return (
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Quantidade (Máx: {remaining})</label>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            max={remaining}
-                                            value={guestForm.quantity}
-                                            onChange={e => setGuestForm({ ...guestForm, quantity: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                );
-                            }
-                            return null;
-                        })()
-                    )}
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Mensagem (Opcional)</label>
-                        <Input value={guestForm.message} onChange={e => setGuestForm({ ...guestForm, message: e.target.value })} placeholder="Felicidades!" />
-                    </div>
-
-                    {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
-
-                    <div className="pt-2">
-                        <Button type="submit" disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600">
-                            {loading ? "Confirmando..." : "Confirmar Escolha"}
-                        </Button>
-                    </div>
-                </form>
-            </Modal>
-
-            {/* RSVP Modal */}
-            <Modal
-                isOpen={isRSVPModalOpen}
-                onClose={() => setIsRSVPModalOpen(false)}
-                title="Confirmar Presença"
-                description="Informe se você poderá comparecer ao evento."
-            >
-                <form onSubmit={handleRSVP} className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
-                        <Input required value={rsvpForm.name} onChange={e => setRsvpForm({ ...rsvpForm, name: e.target.value })} placeholder="ex: João Silva" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Contato (Opcional)</label>
-                        <Input value={rsvpForm.contact} onChange={e => setRsvpForm({ ...rsvpForm, contact: e.target.value })} placeholder="Email ou Telefone" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Você poderá ir?</label>
-                        <select
-                            className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                            value={rsvpForm.status}
-                            onChange={e => setRsvpForm({ ...rsvpForm, status: e.target.value })}
+                    <p className="text-lg max-w-2xl mx-auto opacity-70" style={{ color: theme.text }}>
+                        Organizado por {list.organizerName}. Escolha um presente para tornar o dia deles especial!
+                    </p>
+                    <div className="pt-4 pb-8">
+                        <Button
+                            onClick={() => setIsRSVPModalOpen(true)}
+                            className="text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg transform hover:scale-105 transition-all"
+                            style={{ backgroundColor: "#25D366" }}
                         >
-                            <option value="yes">Sim, eu vou!</option>
-                            <option value="maybe">Ainda não sei</option>
-                            <option value="no">Não poderei ir</option>
-                        </select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Mensagem para os anfitriões (Opcional)</label>
-                        <Input value={rsvpForm.message} onChange={e => setRsvpForm({ ...rsvpForm, message: e.target.value })} placeholder="Felicidades!" />
-                    </div>
-
-                    {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
-
-                    <div className="pt-2">
-                        <Button type="submit" disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600">
-                            {loading ? "Enviando..." : "Confirmar Presença"}
+                            Confirmar Presença
                         </Button>
                     </div>
-                </form>
-            </Modal>
-
-            {/* Success Modal */}
-            <Modal
-                isOpen={!!successMessage}
-                onClose={() => setSuccessMessage("")}
-                title="Muito Obrigado!"
-                description={successMessage}
-            >
-                <div className="flex justify-center py-4">
-                    <Button onClick={() => setSuccessMessage("")} className="w-full">Fechar</Button>
                 </div>
-            </Modal>
 
-            <footer className="mt-16 text-center text-gray-400 text-sm">
-                <p>Powered by Gifts2</p>
-            </footer>
+                {/* Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {list.gifts.map((gift) => (
+                        <GiftCard
+                            key={gift.id}
+                            gift={calculateProgress(gift) as any}
+                            isOrganizer={false}
+                            primaryColor={theme.primary}
+                            onSelect={(g) => {
+                                setSelectedGift(gift);
+                                setGuestForm(prev => ({ ...prev, quantity: 1 }));
+                                setError("");
+                            }}
+                        />
+                    ))}
+                </div>
+
+                {/* Selection Modal */}
+                <Modal
+                    isOpen={!!selectedGift}
+                    onClose={() => setSelectedGift(null)}
+                    title={`Presentear ${selectedGift?.name}`}
+                    description="Confirme seus dados para que o organizador saiba quem agradecer."
+                >
+                    <form onSubmit={handleSelectGift} className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
+                            <Input required value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })} placeholder="ex: Tia Maria" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Contato (Email/WhatsApp - Opcional)</label>
+                            <Input value={guestForm.contact} onChange={e => setGuestForm({ ...guestForm, contact: e.target.value })} />
+                        </div>
+
+                        {selectedGift && (
+                            (() => {
+                                const stats = calculateProgress(selectedGift);
+                                const remaining = stats.quantityNeeded - stats.quantitySelected;
+                                if (remaining > 1) {
+                                    return (
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Quantidade (Máx: {remaining})</label>
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                max={remaining}
+                                                value={guestForm.quantity}
+                                                onChange={e => setGuestForm({ ...guestForm, quantity: Number(e.target.value) })}
+                                            />
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()
+                        )}
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Mensagem (Opcional)</label>
+                            <Input value={guestForm.message} onChange={e => setGuestForm({ ...guestForm, message: e.target.value })} placeholder="Felicidades!" />
+                        </div>
+
+                        {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
+
+                        <div className="pt-2">
+                            <Button type="submit" disabled={loading} className="w-full text-white" style={{ backgroundColor: theme.primary }}>
+                                {loading ? "Confirmando..." : "Confirmar Escolha"}
+                            </Button>
+                        </div>
+                    </form>
+                </Modal>
+
+                {/* RSVP Modal */}
+                <Modal
+                    isOpen={isRSVPModalOpen}
+                    onClose={() => setIsRSVPModalOpen(false)}
+                    title="Confirmar Presença"
+                    description="Informe se você poderá comparecer ao evento."
+                >
+                    <form onSubmit={handleRSVP} className="space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
+                            <Input required value={rsvpForm.name} onChange={e => setRsvpForm({ ...rsvpForm, name: e.target.value })} placeholder="ex: João Silva" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Contato (Opcional)</label>
+                            <Input value={rsvpForm.contact} onChange={e => setRsvpForm({ ...rsvpForm, contact: e.target.value })} placeholder="Email ou Telefone" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Você poderá ir?</label>
+                            <select
+                                className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2"
+                                value={rsvpForm.status}
+                                onChange={e => setRsvpForm({ ...rsvpForm, status: e.target.value })}
+                            >
+                                <option value="yes">Sim, eu vou!</option>
+                                <option value="maybe">Ainda não sei</option>
+                                <option value="no">Não poderei ir</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Mensagem para os anfitriões (Opcional)</label>
+                            <Input value={rsvpForm.message} onChange={e => setRsvpForm({ ...rsvpForm, message: e.target.value })} placeholder="Felicidades!" />
+                        </div>
+
+                        {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
+
+                        <div className="pt-2">
+                            <Button type="submit" disabled={loading} className="w-full text-white" style={{ backgroundColor: theme.primary }}>
+                                {loading ? "Enviando..." : "Confirmar Presença"}
+                            </Button>
+                        </div>
+                    </form>
+                </Modal>
+
+                {/* Success Modal */}
+                <Modal
+                    isOpen={!!successMessage}
+                    onClose={() => setSuccessMessage("")}
+                    title="Muito Obrigado!"
+                    description={successMessage}
+                >
+                    <div className="flex justify-center py-4">
+                        <Button onClick={() => setSuccessMessage("")} className="w-full text-white" style={{ backgroundColor: theme.primary }}>Fechar</Button>
+                    </div>
+                </Modal>
+
+                <footer className="mt-16 text-center opacity-40 text-sm" style={{ color: theme.text }}>
+                    <p>Powered by Gifts2</p>
+                </footer>
+            </div>
         </div>
     );
 }

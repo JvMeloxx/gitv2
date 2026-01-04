@@ -25,6 +25,8 @@ model GiftList {
   eventDate     String
   location      String?
   coverImageUrl String?
+  theme         String       @default("default")
+  backgroundImageUrl String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   userId        String?
