@@ -165,6 +165,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                             gift={calculateProgress(gift) as any}
                             isOrganizer={false}
                             primaryColor={theme.primary}
+                            buttonTextColor={theme.buttonText}
                             onSelect={(g) => {
                                 setSelectedGift(gift);
                                 setGuestForm(prev => ({ ...prev, quantity: 1 }));

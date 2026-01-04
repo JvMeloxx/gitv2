@@ -11,9 +11,10 @@ interface GiftCardProps {
     onDelete?: (giftId: string) => void;
     onSelect?: (gift: Gift) => void;
     primaryColor?: string;
+    buttonTextColor?: string;
 }
 
-export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor }: GiftCardProps) {
+export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor, buttonTextColor }: GiftCardProps) {
     const isFullySelected = gift.quantitySelected >= gift.quantityNeeded;
 
     return (
@@ -98,7 +99,10 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                 ) : (
                     <Button
                         className="w-full"
-                        style={primaryColor && !isFullySelected ? { backgroundColor: primaryColor } : {}}
+                        style={primaryColor && !isFullySelected ? {
+                            backgroundColor: primaryColor,
+                            color: buttonTextColor || "white"
+                        } : {}}
                         disabled={isFullySelected}
                         onClick={() => onSelect?.(gift)}
                     >
