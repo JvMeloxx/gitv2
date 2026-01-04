@@ -32,6 +32,7 @@ type GuestListClientProps = {
         organizerName: string;
         eventDate: string;
         location: string | null;
+        coverImageUrl: string | null;
         gifts: GiftWithSelection[];
     };
 };
@@ -104,8 +105,20 @@ export function GuestListClient({ list }: GuestListClientProps) {
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="text-center mb-12 space-y-4">
-                <div className="inline-flex items-center justify-center p-3 bg-pink-100/50 rounded-full mb-2">
-                    <GiftIcon className="w-8 h-8 text-pink-500" />
+                <div className="inline-flex items-center justify-center mb-2">
+                    {list.coverImageUrl ? (
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-pink-50">
+                            <img
+                                src={list.coverImageUrl}
+                                alt={list.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    ) : (
+                        <div className="p-4 bg-pink-100/50 rounded-full">
+                            <GiftIcon className="w-10 h-10 text-pink-500" />
+                        </div>
+                    )}
                 </div>
                 <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{list.title}</h1>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-gray-600">

@@ -72,12 +72,13 @@ export async function createGiftList(formData: {
     title: string;
     eventDate: string;
     location?: string;
+    coverImageUrl?: string;
 }) {
     try {
         const session = await getSession();
         const userId = session?.userId;
 
-        const { eventType, organizerName, title, eventDate, location } = formData;
+        const { eventType, organizerName, title, eventDate, location, coverImageUrl } = formData;
 
         // Generate template items
         const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
@@ -99,6 +100,7 @@ export async function createGiftList(formData: {
                 eventType,
                 eventDate,
                 location,
+                coverImageUrl,
                 userId, // Connect to user if authenticated
                 gifts: {
                     create: initialGifts

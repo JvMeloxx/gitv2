@@ -17,6 +17,7 @@ export default function CreateList() {
         title: "",
         eventDate: "",
         location: "",
+        coverImageUrl: "",
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,6 +32,7 @@ export default function CreateList() {
                 title: formData.title || `${formData.eventType === 'wedding' ? 'Casamento de' : formData.eventType === 'birthday' ? 'Aniversário de' : 'Evento de'} ${formData.organizerName}`,
                 eventDate: formData.eventDate,
                 location: formData.location,
+                coverImageUrl: formData.coverImageUrl,
             });
             // Redirect is handled in server action
         } catch (error) {
@@ -117,6 +119,18 @@ export default function CreateList() {
                                 placeholder="ex: Rio de Janeiro"
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="coverImageUrl" className="text-sm font-medium text-gray-700 block">
+                                Foto de Perfil da Lista (URL - Opcional)
+                            </label>
+                            <Input
+                                id="coverImageUrl"
+                                placeholder="ex: https://.../foto.jpg"
+                                value={formData.coverImageUrl}
+                                onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
                             />
                         </div>
 

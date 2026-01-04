@@ -24,6 +24,7 @@ model GiftList {
   eventType     String
   eventDate     String
   location      String?
+  coverImageUrl String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   userId        String?

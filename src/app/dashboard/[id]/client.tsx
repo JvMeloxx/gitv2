@@ -48,6 +48,7 @@ type DashboardClientProps = {
         organizerName: string;
         eventDate: string;
         location: string | null;
+        coverImageUrl: string | null;
         gifts: GiftWithSelection[];
         attendances: Attendance[];
     };
@@ -129,15 +130,26 @@ export function DashboardClient({ list }: DashboardClientProps) {
     return (
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
-                <div>
-                    <div className="flex items-center gap-2 text-sm text-pink-500 font-medium mb-1">
-                        <LayoutDashboard className="w-4 h-4" /> Painel do Organizador
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    {list.coverImageUrl ? (
+                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-pink-100 shadow-sm bg-pink-50 flex-shrink-0">
+                            <img src={list.coverImageUrl} alt={list.title} className="w-full h-full object-cover" />
+                        </div>
+                    ) : (
+                        <div className="w-20 h-20 rounded-full bg-pink-50 border-2 border-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500">
+                            <LayoutDashboard className="w-10 h-10" />
+                        </div>
+                    )}
+                    <div>
+                        <div className="flex items-center gap-2 text-sm text-pink-500 font-medium mb-1">
+                            <LayoutDashboard className="w-4 h-4" /> Painel do Organizador
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900">{list.title}</h1>
+                        <p className="text-gray-500 mt-1">
+                            {list.eventDate} • {list.location} • {fulfilledCount} / {list.gifts.length} itens conquistados
+                        </p>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">{list.title}</h1>
-                    <p className="text-gray-500 mt-1">
-                        {list.eventDate} • {list.location} • {fulfilledCount} / {list.gifts.length} itens conquistados
-                    </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
