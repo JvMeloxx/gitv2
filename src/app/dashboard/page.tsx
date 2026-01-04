@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Plus, Gift, Calendar, MapPin, ArrowRight, Trash2 } from "lucide-react";
-import { deleteGiftList } from "@/app/actions";
+import { Plus, Gift, Calendar, MapPin, ArrowRight } from "lucide-react";
+import { DeleteListButton } from "@/components/features/delete-list-button";
 
 export default async function DashboardPage() {
     const session = await getSession();
@@ -93,11 +93,7 @@ export default async function DashboardPage() {
                                                 Gerenciar <ArrowRight className="w-4 h-4" />
                                             </Link>
                                         </Button>
-                                        <form action={deleteGiftList.bind(null, list.id)} onSubmit={(e) => { if (!confirm("Tem certeza que deseja excluir esta lista?")) e.preventDefault(); }}>
-                                            <Button type="submit" variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50">
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </form>
+                                        <DeleteListButton listId={list.id} />
                                     </CardFooter>
                                 </Card>
                             );
