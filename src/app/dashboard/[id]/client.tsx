@@ -255,6 +255,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                     isOrganizer={true}
                                     onDelete={async (id) => await deleteGift(id)}
                                     onEdit={openEditModal}
+                                    isCashEnabled={list.isCashEnabled}
                                 />
                             </div>
                         ))}

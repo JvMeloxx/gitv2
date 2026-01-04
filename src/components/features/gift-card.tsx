@@ -1,7 +1,7 @@
 import { Gift } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Trash2, Edit2, CheckCircle2, X } from "lucide-react";
+import { Package, Trash2, Edit2, CheckCircle2, X, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GiftCardProps {
@@ -14,9 +14,10 @@ interface GiftCardProps {
     buttonTextColor?: string;
     mySelectionIds?: string[];
     onCancelSelection?: (selectionId: string) => void;
+    isCashEnabled?: boolean;
 }
 
-export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor, buttonTextColor, mySelectionIds = [], onCancelSelection }: GiftCardProps) {
+export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor, buttonTextColor, mySelectionIds = [], onCancelSelection, isCashEnabled = false }: GiftCardProps) {
     const isFullySelected = gift.quantitySelected >= gift.quantityNeeded;
 
     return (
@@ -30,6 +31,13 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                     <img src={gift.imageUrl} alt={gift.name} className="w-full h-full object-cover" />
                 ) : (
                     <Package className="w-16 h-16 text-gray-300" />
+                )}
+
+                {isCashEnabled && !isFullySelected && !isOrganizer && (
+                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+                        <Wallet className="w-3 h-3" />
+                        EM DINHEIRO
+                    </div>
                 )}
 
                 {gift.quantitySelected > 0 && (

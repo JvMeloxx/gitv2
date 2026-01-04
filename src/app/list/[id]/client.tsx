@@ -314,6 +314,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                             buttonTextColor={theme.buttonText}
                             mySelectionIds={mySelectionIds}
                             onCancelSelection={handleCancelSelection}
+                            isCashEnabled={list.isCashEnabled}
                             onSelect={(g) => {
                                 setSelectedGift(gift);
                                 setGuestForm(prev => ({ ...prev, quantity: 1 }));
