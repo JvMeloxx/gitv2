@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createGiftList } from "@/app/actions";
 import { EventType } from "@/lib/types";
+import { Camera, Image as ImageIcon } from "lucide-react";
 
 export default function CreateList() {
     const [error, setError] = useState("");
@@ -19,6 +20,18 @@ export default function CreateList() {
         location: "",
         coverImageUrl: "",
     });
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = reader.result as string;
+            setFormData(prev => ({ ...prev, coverImageUrl: base64String }));
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,7 +47,6 @@ export default function CreateList() {
                 location: formData.location,
                 coverImageUrl: formData.coverImageUrl,
             });
-            // Redirect is handled in server action
         } catch (error) {
             if (error instanceof Error && error.message === "NEXT_REDIRECT") {
                 throw error;
@@ -122,16 +134,38 @@ export default function CreateList() {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="coverImageUrl" className="text-sm font-medium text-gray-700 block">
-                                Foto de Perfil da Lista (URL - Opcional)
+                        <div className="space-y-4 pt-2">
+                            <label className="text-sm font-medium text-gray-700 block">
+                                Foto de Perfil da Lista (Opcional)
                             </label>
-                            <Input
-                                id="coverImageUrl"
-                                placeholder="ex: https://.../foto.jpg"
-                                value={formData.coverImageUrl}
-                                onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
-                            />
+                            <div className="flex items-center gap-6">
+                                <div className="relative group">
+                                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 overflow-hidden flex items-center justify-center transition-all group-hover:border-pink-300">
+                                        {formData.coverImageUrl ? (
+                                            <img src={formData.coverImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ImageIcon className="w-8 h-8 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <label
+                                        htmlFor="imageUpload"
+                                        className="absolute bottom-0 right-0 bg-pink-500 p-2 rounded-full text-white shadow-lg cursor-pointer hover:bg-pink-600 transition-colors"
+                                    >
+                                        <Camera className="w-4 h-4" />
+                                        <input
+                                            id="imageUpload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageChange}
+                                        />
+                                    </label>
+                                </div>
+                                <div className="flex-1 text-sm text-gray-500">
+                                    <p className="font-medium text-gray-700">Subir foto do Celular ou PC</p>
+                                    <p>Clique no ícone da câmera para escolher uma foto especial.</p>
+                                </div>
+                            </div>
                         </div>
 
                         {error && <p className="text-sm text-red-500 text-center font-medium bg-red-50 p-2 rounded border border-red-100 mb-4">{error}</p>}
