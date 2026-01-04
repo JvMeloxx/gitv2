@@ -30,6 +30,15 @@ type GiftWithSelection = {
     updatedAt: Date;
 };
 
+type Attendance = {
+    id: string;
+    guestName: string;
+    guestContact: string | null;
+    status: string;
+    message: string | null;
+    createdAt: Date;
+};
+
 type DashboardClientProps = {
     id: string;
     list: {
@@ -40,12 +49,14 @@ type DashboardClientProps = {
         eventDate: string;
         location: string | null;
         gifts: GiftWithSelection[];
+        attendances: Attendance[];
     };
 };
 
 export function DashboardClient({ list }: DashboardClientProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingGift, setEditingGift] = useState<GiftWithSelection | null>(null);
+    const [activeTab, setActiveTab] = useState<"gifts" | "attendances">("gifts");
 
     // Form state
     const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
@@ -146,69 +157,151 @@ export function DashboardClient({ list }: DashboardClientProps) {
                 </div>
             </div>
 
-            {/* Grid Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {list.gifts.map((gift) => (
-                    <div key={gift.id} className="h-full">
-                        <GiftCard
-                            gift={calculateProgress(gift) as any}
-                            isOrganizer={true}
-                            onDelete={async (id) => await deleteGift(id)}
-                            onEdit={openEditModal}
-                        />
-                    </div>
-                ))}
-
-                {/* Empty State / Add New Card */}
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mb-8 gap-8">
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="h-full min-h-[300px] border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-300 hover:bg-pink-50/50 transition-all group"
+                    onClick={() => setActiveTab("gifts")}
+                    className={`pb-4 text-sm font-semibold transition-colors relative ${activeTab === "gifts" ? "text-pink-600" : "text-gray-500 hover:text-gray-700"
+                        }`}
                 >
-                    <div className="bg-gray-100 group-hover:bg-pink-100 p-4 rounded-full mb-3 transition-colors">
-                        <Plus className="w-8 h-8" />
-                    </div>
-                    <span className="font-medium">Adicionar Novo Presente</span>
+                    Presentes ({list.gifts.length})
+                    {activeTab === "gifts" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-600" />}
+                </button>
+                <button
+                    onClick={() => setActiveTab("attendances")}
+                    className={`pb-4 text-sm font-semibold transition-colors relative ${activeTab === "attendances" ? "text-pink-600" : "text-gray-500 hover:text-gray-700"
+                        }`}
+                >
+                    Convidados ({list.attendances.length})
+                    {activeTab === "attendances" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-600" />}
                 </button>
             </div>
 
-            {/* Guest Tracking Section */}
-            <div className="mt-16">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Lista de Convidados & Mensagens</h2>
-                {list.gifts.some(g => g.selections.length > 0) ? (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50 text-gray-900 font-medium">
-                                    <tr>
-                                        <th className="px-6 py-4">Presente</th>
-                                        <th className="px-6 py-4">Convidado</th>
-                                        <th className="px-6 py-4">Qtd.</th>
-                                        <th className="px-6 py-4">Mensagem</th>
-                                        <th className="px-6 py-4">Contato</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {list.gifts.filter(g => g.selections.length > 0).flatMap(gift =>
-                                        gift.selections.map((selection, idx) => (
-                                            <tr key={`${gift.id}-${idx}`} className="hover:bg-gray-50/50">
-                                                <td className="px-6 py-4 font-medium text-gray-900">{gift.name}</td>
-                                                <td className="px-6 py-4">{selection.guestName}</td>
-                                                <td className="px-6 py-4">{selection.quantity}</td>
-                                                <td className="px-6 py-4 italic">{selection.message || "-"}</td>
-                                                <td className="px-6 py-4">{selection.guestContact || "-"}</td>
+            {activeTab === "gifts" ? (
+                <>
+                    {/* Grid Section */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {list.gifts.map((gift) => (
+                            <div key={gift.id} className="h-full">
+                                <GiftCard
+                                    gift={calculateProgress(gift) as any}
+                                    isOrganizer={true}
+                                    onDelete={async (id) => await deleteGift(id)}
+                                    onEdit={openEditModal}
+                                />
+                            </div>
+                        ))}
+
+                        {/* Empty State / Add New Card */}
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="h-full min-h-[300px] border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-300 hover:bg-pink-50/50 transition-all group"
+                        >
+                            <div className="bg-gray-100 group-hover:bg-pink-100 p-4 rounded-full mb-3 transition-colors">
+                                <Plus className="w-8 h-8" />
+                            </div>
+                            <span className="font-medium">Adicionar Novo Presente</span>
+                        </button>
+                    </div>
+
+                    {/* Guest Tracking Section */}
+                    <div className="mt-16">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Presentes Escolhidos</h2>
+                        {list.gifts.some(g => g.selections.length > 0) ? (
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm text-gray-600">
+                                        <thead className="bg-gray-50 text-gray-900 font-medium">
+                                            <tr>
+                                                <th className="px-6 py-4">Presente</th>
+                                                <th className="px-6 py-4">Convidado</th>
+                                                <th className="px-6 py-4">Qtd.</th>
+                                                <th className="px-6 py-4">Mensagem</th>
+                                                <th className="px-6 py-4">Contato</th>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {list.gifts.filter(g => g.selections.length > 0).flatMap(gift =>
+                                                gift.selections.map((selection, idx) => (
+                                                    <tr key={`${gift.id}-${idx}`} className="hover:bg-gray-50/50">
+                                                        <td className="px-6 py-4 font-medium text-gray-900">{gift.name}</td>
+                                                        <td className="px-6 py-4">{selection.guestName}</td>
+                                                        <td className="px-6 py-4">{selection.quantity}</td>
+                                                        <td className="px-6 py-4 italic">{selection.message || "-"}</td>
+                                                        <td className="px-6 py-4">{selection.guestContact || "-"}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
+                                <p className="text-gray-400">Nenhum presente selecionado ainda. Compartilhe sua lista para começar!</p>
+                            </div>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <div className="space-y-8 animate-in fade-in duration-500">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
+                            <span className="text-green-600 text-sm font-bold uppercase">Confirmados</span>
+                            <p className="text-3xl font-bold text-green-700 mt-1">{list.attendances.filter(a => a.status === 'yes').length}</p>
+                        </div>
+                        <div className="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
+                            <span className="text-yellow-600 text-sm font-bold uppercase">Em Dúvida</span>
+                            <p className="text-3xl font-bold text-yellow-700 mt-1">{list.attendances.filter(a => a.status === 'maybe').length}</p>
+                        </div>
+                        <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
+                            <span className="text-red-600 text-sm font-bold uppercase">Não Irão</span>
+                            <p className="text-3xl font-bold text-red-700 mt-1">{list.attendances.filter(a => a.status === 'no').length}</p>
                         </div>
                     </div>
-                ) : (
-                    <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
-                        <p className="text-gray-400">Nenhum presente selecionado ainda. Compartilhe sua lista para começar!</p>
-                    </div>
-                )}
-            </div>
+
+                    {list.attendances.length > 0 ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-50 text-gray-900 font-medium">
+                                        <tr>
+                                            <th className="px-6 py-4">Nome</th>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Mensagem</th>
+                                            <th className="px-6 py-4">Contato</th>
+                                            <th className="px-6 py-4">Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {list.attendances.map((att) => (
+                                            <tr key={att.id} className="hover:bg-gray-50/50">
+                                                <td className="px-6 py-4 font-bold text-gray-800">{att.guestName}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${att.status === 'yes' ? 'bg-green-100 text-green-700' :
+                                                        att.status === 'no' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                                        }`}>
+                                                        {att.status === 'yes' ? 'Vou' : att.status === 'no' ? 'Não vou' : 'Talvez'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 italic">{att.message || "-"}</td>
+                                                <td className="px-6 py-4">{att.guestContact || "-"}</td>
+                                                <td className="px-6 py-4 text-xs text-gray-400">
+                                                    {new Date(att.createdAt).toLocaleDateString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                            <p className="text-gray-400">Ainda não há confirmações de presença.</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Add Modal */}
             <Modal

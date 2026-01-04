@@ -14,6 +14,9 @@ export default async function Dashboard({ params }: { params: Promise<{ id: stri
                 include: {
                     selections: true
                 }
+            },
+            attendances: {
+                orderBy: { createdAt: "desc" }
             }
         }
     });
