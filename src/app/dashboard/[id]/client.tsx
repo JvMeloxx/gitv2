@@ -129,9 +129,16 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <Button variant="outline" onClick={handleCopyLink} className="gap-2">
-                        <Share2 className="w-4 h-4" /> Compartilhar Link
+                        <Share2 className="w-4 h-4" /> Link
+                    </Button>
+                    <Button variant="outline" className="gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] border-none" onClick={() => {
+                        const url = `${window.location.origin}/list/${list.slug}`;
+                        const text = encodeURIComponent(`Confira minha lista de presentes "${list.title}" no Gifts2: ${url}`);
+                        window.open(`https://wa.me/?text=${text}`, '_blank');
+                    }}>
+                        <Share2 className="w-4 h-4" /> WhatsApp
                     </Button>
                     <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
                         <Plus className="w-4 h-4" /> Adicionar Presente

@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { Gift } from "lucide-react";
 
-export default function Home() {
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function Home() {
+    const session = await getSession();
+    if (session) {
+        redirect("/dashboard");
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-pink-50 to-blue-50 flex flex-col items-center justify-center p-4">
             <main className="text-center space-y-8 max-w-2xl mx-auto">

@@ -160,3 +160,11 @@ export async function selectGift(giftId: string, data: {
 
     revalidatePath(`/list/${gift.listId}`);
 }
+
+export async function deleteGiftList(listId: string) {
+    await prisma.giftList.delete({
+        where: { id: listId }
+    });
+    revalidatePath("/dashboard");
+    redirect("/dashboard");
+}

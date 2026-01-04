@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Plus, Gift, Calendar, MapPin, ArrowRight } from "lucide-react";
+import { Plus, Gift, Calendar, MapPin, ArrowRight, Trash2 } from "lucide-react";
+import { deleteGiftList } from "@/app/actions";
 
 export default async function DashboardPage() {
     const session = await getSession();
@@ -86,12 +87,17 @@ export default async function DashboardPage() {
                                             </div>
                                         </div>
                                     </CardContent>
-                                    <CardFooter className="pt-4 border-t border-gray-100">
-                                        <Button asChild variant="ghost" className="w-full justify-between hover:bg-pink-50 hover:text-pink-600">
+                                    <CardFooter className="pt-4 border-t border-gray-100 flex gap-2">
+                                        <Button asChild variant="ghost" className="flex-grow justify-between hover:bg-pink-50 hover:text-pink-600">
                                             <Link href={`/dashboard/${list.id}`}>
-                                                Gerenciar Lista <ArrowRight className="w-4 h-4" />
+                                                Gerenciar <ArrowRight className="w-4 h-4" />
                                             </Link>
                                         </Button>
+                                        <form action={deleteGiftList.bind(null, list.id)} onSubmit={(e) => { if (!confirm("Tem certeza que deseja excluir esta lista?")) e.preventDefault(); }}>
+                                            <Button type="submit" variant="ghost" size="icon" className="text-gray-400 hover:text-red-500 hover:bg-red-50">
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </form>
                                     </CardFooter>
                                 </Card>
                             );
