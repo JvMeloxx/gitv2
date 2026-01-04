@@ -1,8 +1,6 @@
 import { Resend } from 'resend';
 import twilio from 'twilio';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Twilio Client
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
     ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
@@ -26,11 +24,12 @@ export async function sendGiftSelectionEmail({
     message?: string;
 }) {
     if (!process.env.RESEND_API_KEY) {
-        console.warn("DEBUG [Email]: RESEND_API_KEY not found. Email not sent.");
+        console.warn("DEBUG [Email]: RESEND_API_KEY not found. Email will not be sent.");
         return;
     }
 
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         console.log(`DEBUG [Email]: Attempting to send email to ${to}...`);
         const result = await resend.emails.send({
             from: 'Gifts2 <onboarding@resend.dev>',
