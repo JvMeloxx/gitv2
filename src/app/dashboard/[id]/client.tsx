@@ -36,6 +36,8 @@ type Attendance = {
     guestContact: string | null;
     status: string;
     message: string | null;
+    companionName: string | null;
+    hasChildren: boolean;
     createdAt: Date;
 };
 
@@ -280,6 +282,8 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                         <tr>
                                             <th className="px-6 py-4">Nome</th>
                                             <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Acompanhante</th>
+                                            <th className="px-6 py-4 text-center">Filhos?</th>
                                             <th className="px-6 py-4">Mensagem</th>
                                             <th className="px-6 py-4">Contato</th>
                                             <th className="px-6 py-4">Data</th>
@@ -295,6 +299,14 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                                         }`}>
                                                         {att.status === 'yes' ? 'Vou' : att.status === 'no' ? 'Não vou' : 'Talvez'}
                                                     </span>
+                                                </td>
+                                                <td className="px-6 py-4">{att.companionName || "-"}</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {att.hasChildren ? (
+                                                        <span className="text-pink-600 font-bold">Sim</span>
+                                                    ) : (
+                                                        <span className="text-gray-400">Não</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 italic">{att.message || "-"}</td>
                                                 <td className="px-6 py-4">{att.guestContact || "-"}</td>

@@ -44,7 +44,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [selectedGift, setSelectedGift] = useState<GiftWithSelection | null>(null);
     const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
     const [guestForm, setGuestForm] = useState({ name: "", contact: "", message: "", quantity: 1 });
-    const [rsvpForm, setRsvpForm] = useState({ name: "", contact: "", status: "yes", message: "" });
+    const [rsvpForm, setRsvpForm] = useState({ name: "", contact: "", status: "yes", message: "", companionName: "", hasChildren: false });
     const [successMessage, setSuccessMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -89,7 +89,9 @@ export function GuestListClient({ list }: GuestListClientProps) {
             guestName: rsvpForm.name,
             guestContact: rsvpForm.contact,
             status: rsvpForm.status,
-            message: rsvpForm.message
+            message: rsvpForm.message,
+            companionName: rsvpForm.companionName,
+            hasChildren: rsvpForm.hasChildren
         });
 
         if (result?.error) {
@@ -100,7 +102,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
         setSuccessMessage(`Obrigado, ${rsvpForm.name}! Sua presença foi confirmada.`);
         setIsRSVPModalOpen(false);
-        setRsvpForm({ name: "", contact: "", status: "yes", message: "" });
+        setRsvpForm({ name: "", contact: "", status: "yes", message: "", companionName: "", hasChildren: false });
         setLoading(false);
     };
 
@@ -262,6 +264,41 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         </div>
 
                         <div className="space-y-2">
+                            <label className="text-sm font-medium">Nome do Acompanhante (Opcional)</label>
+                            <Input
+                                value={rsvpForm.companionName}
+                                onChange={e => setRsvpForm({ ...rsvpForm, companionName: e.target.value })}
+                                placeholder="Nome de quem vai com você"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Levará filhos?</label>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="hasChildren"
+                                        checked={rsvpForm.hasChildren === true}
+                                        onChange={() => setRsvpForm({ ...rsvpForm, hasChildren: true })}
+                                        className="w-4 h-4 text-pink-600 focus:ring-pink-500"
+                                    />
+                                    <span className="text-sm">Sim</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="hasChildren"
+                                        checked={rsvpForm.hasChildren === false}
+                                        onChange={() => setRsvpForm({ ...rsvpForm, hasChildren: false })}
+                                        className="w-4 h-4 text-pink-600 focus:ring-pink-500"
+                                    />
+                                    <span className="text-sm">Não</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
                             <label className="text-sm font-medium">Mensagem para os anfitriões (Opcional)</label>
                             <Input value={rsvpForm.message} onChange={e => setRsvpForm({ ...rsvpForm, message: e.target.value })} placeholder="Felicidades!" />
                         </div>
@@ -292,6 +329,6 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <p>Powered by Gifts2</p>
                 </footer>
             </div>
-        </div>
+        </div >
     );
 }

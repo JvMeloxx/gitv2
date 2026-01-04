@@ -223,6 +223,8 @@ export async function submitRSVP(listId: string, data: {
     guestContact?: string;
     status: string;
     message?: string;
+    companionName?: string;
+    hasChildren?: boolean;
 }) {
     try {
         await prisma.attendance.create({

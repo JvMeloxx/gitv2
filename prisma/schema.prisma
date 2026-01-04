@@ -69,6 +69,8 @@ model Attendance {
   guestContact String?
   status       String
   message      String?
+  companionName String?
+  hasChildren  Boolean  @default(false)
   createdAt    DateTime @default(now())
   list         GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
 }
