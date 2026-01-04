@@ -28,10 +28,23 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                     <Package className="w-16 h-16 text-gray-300" />
                 )}
 
-                {isFullySelected && (
+                {gift.quantitySelected > 0 && (
                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                        <div className="bg-green-100/90 text-green-700 px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4" /> Conquistado
+                        <div className="bg-green-100/95 text-green-700 px-4 py-2 rounded-lg text-xs font-bold flex flex-col items-center gap-1 shadow-sm border border-green-200 backdrop-blur-sm">
+                            <div className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                {isFullySelected ? "Conquistado!" : "Em progresso"}
+                            </div>
+                            <div className="text-[10px] opacity-90 text-center">
+                                {gift.selectedBy && gift.selectedBy.length > 0 ? (
+                                    <span>
+                                        Escolhido por {gift.selectedBy[0].guestName}
+                                        {gift.selectedBy.length > 1 && ` e mais ${gift.selectedBy.length - 1}`}
+                                    </span>
+                                ) : (
+                                    "Escolhido"
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}

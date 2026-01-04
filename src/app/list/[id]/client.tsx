@@ -118,7 +118,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                 <div className="pt-4 pb-8">
                     <Button
                         onClick={() => setIsRSVPModalOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg shadow-pink-200 transform hover:scale-105 transition-all"
+                        className="bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg shadow-green-100 transform hover:scale-105 transition-all"
                     >
                         Confirmar Presença
                     </Button>
