@@ -4,9 +4,10 @@ import { useState } from "react";
 import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Plus, Share2, LayoutDashboard } from "lucide-react";
+import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { addGift, updateGift, deleteGift } from "@/app/actions";
+import { resizeImage } from "@/lib/images";
 
 // We define a local type that matches the Prisma payload including selections
 type GiftWithSelection = {
@@ -63,6 +64,23 @@ export function DashboardClient({ list }: DashboardClientProps) {
 
     // Form state
     const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleGiftImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const compressedBase64 = await resizeImage(file);
+            setGiftForm(prev => ({ ...prev, imageUrl: compressedBase64 }));
+        } catch (error) {
+            console.error("Error uploading gift image:", error);
+            alert("Erro ao processar imagem.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const handleCopyLink = () => {
         const url = `${window.location.origin}/list/${list.slug}`;
@@ -357,8 +375,45 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">URL da Imagem (Opcional)</label>
-                        <Input value={giftForm.imageUrl} onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })} placeholder="https://..." />
+                        <label className="text-sm font-medium">Imagem do Presente</label>
+                        <div className="relative flex flex-col items-center gap-4 p-6 border-2 border-dashed border-pink-100 rounded-2xl bg-pink-50/30 group hover:border-pink-300 transition-colors">
+                            {giftForm.imageUrl ? (
+                                <div className="relative w-32 h-32 rounded-xl overflow-hidden shadow-md">
+                                    <img src={giftForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setGiftForm({ ...giftForm, imageUrl: "" })}
+                                        className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 hover:text-red-700 shadow-sm"
+                                    >
+                                        <Plus className="w-4 h-4 rotate-45" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center group-hover:scale-105 transition-transform duration-300">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
+                                        {isUploading ? <Loader2 className="w-8 h-8 text-pink-500 animate-spin" /> : <Camera className="w-8 h-8 text-pink-500" />}
+                                    </div>
+                                    <p className="text-xs text-gray-500 font-medium">Clique para subir uma foto</p>
+                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ou JPEG</p>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleGiftImageChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                disabled={isUploading}
+                            />
+                        </div>
+                        <div className="pt-2">
+                            <p className="text-[10px] text-gray-400 uppercase font-bold px-1 mb-1">Ou cole uma URL da imagem</p>
+                            <Input
+                                value={giftForm.imageUrl}
+                                onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })}
+                                placeholder="https://..."
+                                className="text-xs h-9"
+                            />
+                        </div>
                     </div>
 
                     <div className="pt-2">
@@ -397,8 +452,45 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">URL da Imagem (Opcional)</label>
-                        <Input value={giftForm.imageUrl} onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })} placeholder="https://..." />
+                        <label className="text-sm font-medium">Imagem do Presente</label>
+                        <div className="relative flex flex-col items-center gap-4 p-6 border-2 border-dashed border-pink-100 rounded-2xl bg-pink-50/30 group hover:border-pink-300 transition-colors">
+                            {giftForm.imageUrl ? (
+                                <div className="relative w-32 h-32 rounded-xl overflow-hidden shadow-md">
+                                    <img src={giftForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={() => setGiftForm({ ...giftForm, imageUrl: "" })}
+                                        className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 hover:text-red-700 shadow-sm"
+                                    >
+                                        <Plus className="w-4 h-4 rotate-45" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center group-hover:scale-105 transition-transform duration-300">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
+                                        {isUploading ? <Loader2 className="w-8 h-8 text-pink-500 animate-spin" /> : <Camera className="w-8 h-8 text-pink-500" />}
+                                    </div>
+                                    <p className="text-xs text-gray-500 font-medium">Clique para subir uma foto</p>
+                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ou JPEG</p>
+                                </div>
+                            )}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleGiftImageChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                disabled={isUploading}
+                            />
+                        </div>
+                        <div className="pt-2">
+                            <p className="text-[10px] text-gray-400 uppercase font-bold px-1 mb-1">Ou cole uma URL da imagem</p>
+                            <Input
+                                value={giftForm.imageUrl}
+                                onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })}
+                                placeholder="https://..."
+                                className="text-xs h-9"
+                            />
+                        </div>
                     </div>
 
                     <div className="pt-2">
