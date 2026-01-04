@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { addGift, updateGift, deleteGift } from "@/app/actions";
 import { resizeImage } from "@/lib/images";
@@ -182,6 +182,9 @@ export function DashboardClient({ list }: DashboardClientProps) {
                         window.open(`https://wa.me/?text=${text}`, '_blank');
                     }}>
                         <Share2 className="w-4 h-4" /> WhatsApp
+                    </Button>
+                    <Button variant="outline" onClick={() => window.open(`/list/${list.slug}`, '_blank')} className="gap-2 text-pink-600 border-pink-100 hover:bg-pink-50">
+                        <Eye className="w-4 h-4" /> Ver como convidado
                     </Button>
                     <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
                         <Plus className="w-4 h-4" /> Adicionar Presente
