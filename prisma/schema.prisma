@@ -24,6 +24,8 @@ model GiftList {
   eventType     String
   eventDate     String
   location      String?
+  organizerPhone String?
+  organizerEmail String?
   coverImageUrl String?
   theme         String       @default("default")
   backgroundImageUrl String?

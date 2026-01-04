@@ -1,6 +1,12 @@
 import { Resend } from 'resend';
+import twilio from 'twilio';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Twilio Client
+const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+    ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+    : null;
 
 export async function sendGiftSelectionEmail({
     to,
@@ -20,13 +26,14 @@ export async function sendGiftSelectionEmail({
     message?: string;
 }) {
     if (!process.env.RESEND_API_KEY) {
-        console.warn("RESEND_API_KEY not found. Email not sent.");
+        console.warn("DEBUG [Email]: RESEND_API_KEY not found. Email not sent.");
         return;
     }
 
     try {
-        await resend.emails.send({
-            from: 'Gifts2 <onboarding@resend.dev>', // Resend standard sender for dev
+        console.log(`DEBUG [Email]: Attempting to send email to ${to}...`);
+        const result = await resend.emails.send({
+            from: 'Gifts2 <onboarding@resend.dev>',
             to,
             subject: `🎁 Alguém escolheu um presente na sua lista: ${listTitle}`,
             html: `
@@ -44,7 +51,7 @@ export async function sendGiftSelectionEmail({
                         "${message}"
                     </div>
                     ` : ''}
-                    <p style="font-size: 14px; color: #999; margin-top: 32px; border-top: 1px solid #eee; pt-16px;">
+                    <p style="font-size: 14px; color: #999; margin-top: 32px; border-top: 1px solid #eee; padding-top: 16px;">
                         Que tal dar uma olhadinha no seu painel para ver como anda a lista? 😊
                     </p>
                     <div style="margin-top: 24px; text-align: center;">
@@ -53,7 +60,39 @@ export async function sendGiftSelectionEmail({
                 </div>
             `,
         });
+        console.log("DEBUG [Email]: Resend result:", result);
     } catch (error) {
-        console.error("Error sending email via Resend:", error);
+        console.error("DEBUG [Email]: Error via Resend:", error);
+    }
+}
+
+export async function sendGiftSelectionSMS({
+    to,
+    guestName,
+    giftName,
+    quantity
+}: {
+    to: string;
+    guestName: string;
+    giftName: string;
+    quantity: number;
+}) {
+    const from = process.env.TWILIO_PHONE_NUMBER;
+
+    if (!twilioClient || !from) {
+        console.log(`DEBUG [SMS MOCK]: To ${to} - 🎁 ${guestName} escolheu ${quantity}x ${giftName}!`);
+        return;
+    }
+
+    try {
+        console.log(`DEBUG [SMS]: Sending to ${to}...`);
+        const message = await twilioClient.messages.create({
+            body: `Gifts2: 🎁 ${guestName} escolheu ${quantity}x ${giftName} na sua lista!`,
+            from,
+            to
+        });
+        console.log("DEBUG [SMS]: Twilio SID:", message.sid);
+    } catch (error) {
+        console.error("DEBUG [SMS]: Error via Twilio:", error);
     }
 }

@@ -22,6 +22,8 @@ export default function CreateList() {
         coverImageUrl: "",
         theme: "default",
         backgroundImageUrl: "",
+        organizerPhone: "",
+        organizerEmail: "",
     });
 
 
@@ -143,6 +145,34 @@ export default function CreateList() {
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                             />
                         </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label htmlFor="organizerPhone" className="text-sm font-medium text-gray-700 block">
+                                    Seu Celular (Opcional)
+                                </label>
+                                <Input
+                                    id="organizerPhone"
+                                    type="tel"
+                                    placeholder="ex: 11999999999"
+                                    value={formData.organizerPhone}
+                                    onChange={(e) => setFormData({ ...formData, organizerPhone: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="organizerEmail" className="text-sm font-medium text-gray-700 block">
+                                    Seu E-mail (Opcional)
+                                </label>
+                                <Input
+                                    id="organizerEmail"
+                                    type="email"
+                                    placeholder="ex: voce@exemplo.com"
+                                    value={formData.organizerEmail}
+                                    onChange={(e) => setFormData({ ...formData, organizerEmail: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-gray-400 text-center">Para receber avisos quando alguém escolher um presente.</p>
 
                         <div className="space-y-4 pt-2">
                             <label className="text-sm font-medium text-gray-700 block">

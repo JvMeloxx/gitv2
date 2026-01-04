@@ -75,6 +75,8 @@ export async function createGiftList(formData: {
     coverImageUrl?: string;
     theme?: string;
     backgroundImageUrl?: string;
+    organizerPhone?: string;
+    organizerEmail?: string;
 }) {
     try {
         const session = await getSession();
@@ -88,7 +90,9 @@ export async function createGiftList(formData: {
             location,
             coverImageUrl,
             theme,
-            backgroundImageUrl
+            backgroundImageUrl,
+            organizerPhone,
+            organizerEmail
         } = formData;
 
         // Generate template items
@@ -111,6 +115,8 @@ export async function createGiftList(formData: {
                 eventType,
                 eventDate,
                 location,
+                organizerPhone,
+                organizerEmail,
                 coverImageUrl,
                 theme: theme || "default",
                 backgroundImageUrl,
@@ -189,21 +195,38 @@ export async function selectGift(giftId: string, data: {
             }
         });
 
-        // Send notification if list has an owner with email
-        if (gift.list.user?.email) {
+        // Send notifications
+        const organizerEmail = (gift.list as any).organizerEmail || gift.list.user?.email;
+        const organizerPhone = (gift.list as any).organizerPhone;
+
+        if (organizerEmail || organizerPhone) {
             try {
-                const { sendGiftSelectionEmail } = await import("@/lib/email");
-                await sendGiftSelectionEmail({
-                    to: gift.list.user.email,
-                    organizerName: gift.list.user.name,
-                    guestName: data.guestName,
-                    giftName: gift.name,
-                    listTitle: gift.list.title,
-                    quantity: data.quantity,
-                    message: data.message
-                });
-            } catch (emailError) {
-                console.error("DEBUG: Failed to send email", emailError);
+                const { sendGiftSelectionEmail, sendGiftSelectionSMS } = await import("@/lib/notifications");
+
+                // Email
+                if (organizerEmail) {
+                    await sendGiftSelectionEmail({
+                        to: organizerEmail,
+                        organizerName: gift.list.organizerName,
+                        guestName: data.guestName,
+                        giftName: gift.name,
+                        listTitle: gift.list.title,
+                        quantity: data.quantity,
+                        message: data.message
+                    });
+                }
+
+                // SMS
+                if (organizerPhone) {
+                    await sendGiftSelectionSMS({
+                        to: organizerPhone,
+                        guestName: data.guestName,
+                        giftName: gift.name,
+                        quantity: data.quantity
+                    });
+                }
+            } catch (notifyError) {
+                console.error("DEBUG: Failed to send notification", notifyError);
             }
         }
 
