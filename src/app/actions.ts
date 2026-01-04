@@ -315,11 +315,16 @@ export async function updateListFinance(listId: string, data: {
     mercadopagoPublicKey: string | null;
     mercadopagoAccessToken: string | null;
 }) {
-    await (prisma as any).giftList.update({
+    const list = await (prisma as any).giftList.update({
         where: { id: listId },
         data: data as any
     });
+
     revalidatePath(`/dashboard/${listId}`);
+    revalidatePath(`/list/${listId}`);
+    if (list.slug) {
+        revalidatePath(`/list/${list.slug}`);
+    }
 }
 
 export async function submitRSVP(listId: string, data: {
