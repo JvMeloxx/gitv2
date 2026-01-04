@@ -39,14 +39,24 @@ export async function registerUser(name: string, email: string, password: string
 }
 
 export async function loginUser(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    try {
+        console.log("DEBUG: loginUser started", { email });
+        const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
-        return { error: "Invalid credentials." };
+        if (!user || !(await verifyPassword(password, user.passwordHash))) {
+            console.log("DEBUG: Invalid credentials", { email });
+            return { error: "Credenciais inválidas." };
+        }
+
+        console.log("DEBUG: loginUser success, starting session", { userId: user.id });
+        await login(user.id);
+        console.log("DEBUG: loginUser redirecting to dashboard");
+        redirect("/dashboard");
+    } catch (error) {
+        if (error instanceof Error && error.message === "NEXT_REDIRECT") throw error;
+        console.error("DEBUG: loginUser error:", error);
+        return { error: "Erro ao entrar. Verifique sua conexão ou tente novamente mais tarde." };
     }
-
-    await login(user.id);
-    redirect("/dashboard");
 }
 
 export async function logoutUser() {
