@@ -8,6 +8,9 @@ import { GIFT_TEMPLATES } from "@/lib/templates";
 import { EventType } from "@/lib/types";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { getSession, login, logout } from "@/lib/auth";
+import { MercadoPagoConfig, Preference } from 'mercadopago';
+
+const PLATFORM_FEE_PERCENT = 0.05; // 5% fee
 
 // --- Auth Actions ---
 
@@ -128,8 +131,8 @@ export async function createGiftList(formData: {
                 eventType,
                 eventDate,
                 location,
-                organizerPhone,
-                organizerEmail,
+                organizerPhone: (formData as any).organizerPhone,
+                organizerEmail: (formData as any).organizerEmail,
                 coverImageUrl,
                 theme: theme || "default",
                 backgroundImageUrl,
@@ -137,7 +140,7 @@ export async function createGiftList(formData: {
                 gifts: {
                     create: initialGiftsData
                 }
-            }
+            } as any
         });
 
         redirect(`/dashboard/${list.id}`);
@@ -201,14 +204,62 @@ export async function selectGift(giftId: string, data: {
         });
         if (!gift) throw new Error("Gift not found");
 
-        const selection = await prisma.selection.create({
-            data: {
-                giftId,
-                ...data
+        // Create Selection
+        const selectionData: any = {
+            giftId,
+            ...data
+        };
+
+        // Handle Payment if Cash is enabled
+        const listData = gift.list as any;
+        let checkoutUrl = null;
+        if (listData.isCashEnabled && gift.priceEstimate && listData.mercadopagoAccessToken) {
+            const fee = gift.priceEstimate * PLATFORM_FEE_PERCENT;
+            const total = gift.priceEstimate + fee;
+
+            selectionData.paymentStatus = "PENDING";
+            selectionData.platformFee = fee;
+
+            try {
+                const client = new MercadoPagoConfig({ accessToken: listData.mercadopagoAccessToken });
+                const preference = new Preference(client);
+
+                const response = await preference.create({
+                    body: {
+                        items: [
+                            {
+                                id: gift.id,
+                                title: gift.name,
+                                quantity: data.quantity,
+                                unit_price: total,
+                                currency_id: 'BRL',
+                            }
+                        ],
+                        back_urls: {
+                            success: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=success`,
+                            failure: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=failure`,
+                            pending: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=pending`,
+                        },
+                        auto_return: 'approved',
+                        notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/webhooks/mercadopago`,
+                        external_reference: listData.id, // We'll need this to find the list in the webhook
+                    }
+                });
+
+                checkoutUrl = response.init_point;
+                selectionData.paymentId = response.id;
+            } catch (mpError) {
+                console.error("DEBUG: Mercado Pago Preference Error", mpError);
+                return { error: "Erro ao iniciar o pagamento. Tente novamente." };
             }
+        }
+
+        const selection = await prisma.selection.create({
+            data: selectionData
         });
 
-        // Send notifications
+        // Send notifications (only if NOT cash or if we want to notify about pending?)
+        // Recommended: Notify only after PAID in a real app, but for now we follow old logic
         const organizerEmail = (gift.list as any).organizerEmail || gift.list.user?.email;
         const organizerPhone = (gift.list as any).organizerPhone;
 
@@ -247,11 +298,28 @@ export async function selectGift(giftId: string, data: {
         revalidatePath(`/list/${gift.listId}`);
         revalidatePath(`/list/${gift.list.slug}`);
         revalidatePath(`/dashboard/${gift.listId}`);
-        return { success: true, selectionId: selection.id };
+
+        return {
+            success: true,
+            selectionId: selection.id,
+            checkoutUrl // Return this to the client
+        };
     } catch (error) {
         console.error("DEBUG: selectGift error:", error);
         return { error: "Ocorreu um erro ao confirmar o presente. Tente novamente." };
     }
+}
+
+export async function updateListFinance(listId: string, data: {
+    isCashEnabled: boolean;
+    mercadopagoPublicKey: string | null;
+    mercadopagoAccessToken: string | null;
+}) {
+    await (prisma as any).giftList.update({
+        where: { id: listId },
+        data: data as any
+    });
+    revalidatePath(`/dashboard/${listId}`);
 }
 
 export async function submitRSVP(listId: string, data: {
@@ -263,7 +331,7 @@ export async function submitRSVP(listId: string, data: {
     hasChildren?: boolean;
 }) {
     try {
-        await prisma.attendance.create({
+        await (prisma as any).attendance.create({
             data: {
                 listId,
                 ...data

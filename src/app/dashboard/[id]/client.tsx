@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye, MessageSquareHeart, UserCheck, Calendar } from "lucide-react";
+import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye, MessageSquareHeart, UserCheck, Calendar, Wallet, Check, ExternalLink } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { addGift, updateGift, deleteGift } from "@/app/actions";
 import { resizeImage } from "@/lib/images";
@@ -52,6 +52,9 @@ type DashboardClientProps = {
         eventDate: string;
         location: string | null;
         coverImageUrl: string | null;
+        isCashEnabled: boolean;
+        mercadopagoPublicKey: string | null;
+        mercadopagoAccessToken: string | null;
         gifts: GiftWithSelection[];
         attendances: Attendance[];
     };
@@ -60,7 +63,13 @@ type DashboardClientProps = {
 export function DashboardClient({ list }: DashboardClientProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editingGift, setEditingGift] = useState<GiftWithSelection | null>(null);
-    const [activeTab, setActiveTab] = useState<"gifts" | "attendances" | "mural">("gifts");
+    const [activeTab, setActiveTab] = useState<"gifts" | "attendances" | "mural" | "finance">("gifts");
+
+    const [financeForm, setFinanceForm] = useState({
+        isCashEnabled: list.isCashEnabled,
+        mercadopagoPublicKey: list.mercadopagoPublicKey || "",
+        mercadopagoAccessToken: list.mercadopagoAccessToken || "",
+    });
 
     // Form state
     const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
@@ -117,6 +126,13 @@ export function DashboardClient({ list }: DashboardClientProps) {
         });
         setEditingGift(null);
         setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
+    };
+
+    const handleUpdateFinance = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const { updateListFinance } = await import("@/app/actions");
+        await updateListFinance(list.id, financeForm);
+        alert("Configurações financeiras atualizadas!");
     };
 
     // Helper to map Prisma gift to UI Gift type or just use it directly
@@ -353,6 +369,101 @@ export function DashboardClient({ list }: DashboardClientProps) {
                             <p className="text-gray-400">Ainda não há confirmações de presença.</p>
                         </div>
                     )}
+                </div>
+            ) : activeTab === "finance" ? (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto">
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
+                                    <Wallet className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold">Gestão Financeira</h2>
+                                    <p className="text-blue-100 opacity-80">Receba o valor dos presentes em dinheiro via Mercado Pago.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                                    <p className="text-xs uppercase font-bold opacity-70 mb-1">Total Arrecadado</p>
+                                    <p className="text-2xl font-bold text-white">
+                                        R$ {list.gifts.reduce((acc, g) => acc + g.selections.filter(s => (s as any).paymentStatus === "PAID").reduce((sum, s) => sum + (g.priceEstimate || 0) * s.quantity, 0), 0).toFixed(2)}
+                                    </p>
+                                </div>
+                                <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                                    <p className="text-xs uppercase font-bold opacity-70 mb-1">Status do Sistema</p>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${list.isCashEnabled ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                                        <p className="font-bold">{list.isCashEnabled ? 'Ativo' : 'Inativo'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleUpdateFinance} className="p-8 space-y-6">
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <div>
+                                    <p className="font-bold text-gray-900">Ativar Recebimento em Dinheiro</p>
+                                    <p className="text-sm text-gray-500">Convidados pagarão o valor estimado do presente.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setFinanceForm(prev => ({ ...prev, isCashEnabled: !prev.isCashEnabled }))}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${financeForm.isCashEnabled ? 'bg-green-500' : 'bg-gray-200'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${financeForm.isCashEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                                    <ExternalLink className="w-4 h-4 text-blue-500" />
+                                    <span>Configuração Mercado Pago</span>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Public Key</label>
+                                    <Input
+                                        placeholder="APP_USR-..."
+                                        value={financeForm.mercadopagoPublicKey}
+                                        onChange={e => setFinanceForm({ ...financeForm, mercadopagoPublicKey: e.target.value })}
+                                        className="bg-gray-50 border-gray-100 rounded-xl"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Access Token</label>
+                                    <Input
+                                        type="password"
+                                        placeholder="APP_USR-..."
+                                        value={financeForm.mercadopagoAccessToken}
+                                        onChange={e => setFinanceForm({ ...financeForm, mercadopagoAccessToken: e.target.value })}
+                                        className="bg-gray-50 border-gray-100 rounded-xl"
+                                    />
+                                </div>
+
+                                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                    <p className="text-xs text-blue-700 leading-relaxed">
+                                        As chaves podem ser encontradas em <strong>Mercado Pago Developers &gt; Suas Aplicações &gt; Credenciais de Produção</strong>. O dinheiro cairá direto na sua conta MP.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all">
+                                Salvar Configurações
+                            </Button>
+                        </form>
+                    </div>
+
+                    <div className="mt-8 p-6 bg-amber-50 rounded-3xl border border-amber-100">
+                        <h4 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
+                            <span>💡</span> Sobre a Taxa de Serviço
+                        </h4>
+                        <p className="text-sm text-amber-800 leading-relaxed">
+                            Uma taxa de <strong>5%</strong> será adicionada ao valor total para o convidado para cobrir custos da plataforma e transação. Você recebe 100% do valor estimado que cadastrou no presente.
+                        </p>
+                    </div>
                 </div>
             ) : (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">

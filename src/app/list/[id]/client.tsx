@@ -5,7 +5,8 @@ import { GiftCard } from "@/components/features/gift-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
-import { Gift as GiftIcon, MapPin, Calendar, Search, Filter, X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Gift as GiftIcon, MapPin, Calendar, Search, Filter, X, CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
 import { selectGift, cancelSelection } from "@/app/actions";
 import { VISUAL_THEMES, ThemeType, BACKGROUND_PATTERNS, PatternType } from "@/lib/themes";
 import { useEffect } from "react";
@@ -39,6 +40,7 @@ type GuestListClientProps = {
         coverImageUrl: string | null;
         theme: string;
         backgroundImageUrl: string | null;
+        isCashEnabled: boolean;
         gifts: GiftWithSelection[];
     };
 };
@@ -55,6 +57,18 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
     const [priceFilter, setPriceFilter] = useState("all");
+    const searchParams = useSearchParams();
+    const paymentStatus = searchParams.get("payment");
+
+    useEffect(() => {
+        if (paymentStatus === "success") {
+            setSuccessMessage("Pagamento confirmado com sucesso! Seu presente foi registrado.");
+        } else if (paymentStatus === "failure") {
+            setError("Ocorreu um erro no pagamento. Por favor, tente novamente.");
+        } else if (paymentStatus === "pending") {
+            setSuccessMessage("Seu pagamento está sendo processado. Assim que for confirmado, o presente será registrado.");
+        }
+    }, [paymentStatus]);
 
     useEffect(() => {
         const saved = localStorage.getItem("myGifts2Selections");
@@ -105,6 +119,12 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
         if (result?.selectionId) {
             saveSelection(result.selectionId);
+        }
+
+        if (result?.checkoutUrl) {
+            // Redirect to Mercado Pago
+            window.location.href = result.checkoutUrl;
+            return;
         }
 
         setSuccessMessage(`Obrigado, ${guestForm.name}! Você confirmou o presente: ${selectedGift.name}.`);
@@ -253,8 +273,8 @@ export function GuestListClient({ list }: GuestListClientProps) {
                                         key={range.value}
                                         onClick={() => setPriceFilter(range.value)}
                                         className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all border ${priceFilter === range.value
-                                                ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-                                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300'
+                                            ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                                            : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300'
                                             }`}
                                     >
                                         {range.label}
@@ -272,8 +292,8 @@ export function GuestListClient({ list }: GuestListClientProps) {
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${activeCategory === cat
-                                            ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
-                                            : 'bg-white text-gray-500 border-gray-100 hover:border-pink-200 hover:text-pink-500'
+                                        ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
+                                        : 'bg-white text-gray-500 border-gray-100 hover:border-pink-200 hover:text-pink-500'
                                         }`}
                                 >
                                     {cat === "all" ? "Todos" : cat}
@@ -318,9 +338,26 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     isOpen={!!selectedGift}
                     onClose={() => setSelectedGift(null)}
                     title={`Presentear ${selectedGift?.name}`}
-                    description="Confirme seus dados para que o organizador saiba quem agradecer."
+                    description={list.isCashEnabled ? "Este presente será enviado em dinheiro para o organizador via Mercado Pago." : "Confirme seus dados para que o organizador saiba quem agradecer."}
                 >
                     <form onSubmit={handleSelectGift} className="space-y-4">
+                        {list.isCashEnabled && selectedGift?.priceEstimate && (
+                            <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 mb-2">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-blue-700">Valor do Presente:</span>
+                                    <span className="font-bold text-blue-900">R$ {selectedGift.priceEstimate.toFixed(2)}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs text-blue-600 opacity-80">
+                                    <span>Taxa de Serviço (5%):</span>
+                                    <span>R$ {(selectedGift.priceEstimate * 0.05).toFixed(2)}</span>
+                                </div>
+                                <div className="h-px bg-blue-100 my-2" />
+                                <div className="flex items-center justify-between font-extrabold text-blue-900">
+                                    <span>Total a pagar:</span>
+                                    <span>R$ {(selectedGift.priceEstimate * 1.05 * guestForm.quantity).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
                             <Input required value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })} placeholder="ex: Tia Maria" />
@@ -361,8 +398,13 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
 
                         <div className="pt-2">
-                            <Button type="submit" disabled={loading} className="w-full text-white" style={{ backgroundColor: theme.primary }}>
-                                {loading ? "Confirmando..." : "Confirmar Escolha"}
+                            <Button type="submit" disabled={loading} className="w-full text-white flex items-center justify-center gap-2" style={{ backgroundColor: theme.primary }}>
+                                {loading ? "Processando..." : list.isCashEnabled ? (
+                                    <>
+                                        <CreditCard className="w-4 h-4" />
+                                        Pagar com Mercado Pago
+                                    </>
+                                ) : "Confirmar Escolha"}
                             </Button>
                         </div>
                     </form>
@@ -453,10 +495,19 @@ export function GuestListClient({ list }: GuestListClientProps) {
                 <Modal
                     isOpen={!!successMessage}
                     onClose={() => setSuccessMessage("")}
-                    title="Muito Obrigado!"
+                    title={paymentStatus === "success" ? "Pagamento Confirmado!" : "Muito Obrigado!"}
                     description={successMessage}
                 >
-                    <div className="flex justify-center py-4">
+                    <div className="flex flex-col items-center py-4 space-y-4">
+                        {paymentStatus === "success" ? (
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                <CheckCircle2 className="w-10 h-10 text-green-500" />
+                            </div>
+                        ) : paymentStatus === "pending" ? (
+                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
+                                <AlertCircle className="w-10 h-10 text-amber-500" />
+                            </div>
+                        ) : null}
                         <Button onClick={() => setSuccessMessage("")} className="w-full text-white" style={{ backgroundColor: theme.primary }}>Fechar</Button>
                     </div>
                 </Modal>
