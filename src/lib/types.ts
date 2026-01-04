@@ -5,6 +5,14 @@ export type EventType =
     | "birthday"
     | "other";
 
+export interface GiftTemplateItem {
+    name: string;
+    category: string;
+    quantityNeeded: number;
+    description: string;
+    imageUrl?: string;
+}
+
 export interface Gift {
     id: string;
     name: string;

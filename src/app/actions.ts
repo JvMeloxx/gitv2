@@ -76,6 +76,7 @@ export async function createGiftList(formData: {
             category: item.category,
             description: item.description,
             quantityNeeded: item.quantityNeeded,
+            imageUrl: item.imageUrl,
         }));
 
         const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${nanoid(4)}`;
@@ -148,7 +149,10 @@ export async function selectGift(giftId: string, data: {
     message?: string;
     quantity: number;
 }) {
-    const gift = await prisma.gift.findUnique({ where: { id: giftId } });
+    const gift = await prisma.gift.findUnique({
+        where: { id: giftId },
+        include: { list: { include: { user: true } } }
+    });
     if (!gift) throw new Error("Gift not found");
 
     await prisma.selection.create({
@@ -157,6 +161,20 @@ export async function selectGift(giftId: string, data: {
             ...data
         }
     });
+
+    // Send notification if list has an owner with email
+    if (gift.list.user?.email) {
+        const { sendGiftSelectionEmail } = await import("@/lib/email");
+        await sendGiftSelectionEmail({
+            to: gift.list.user.email,
+            organizerName: gift.list.user.name,
+            guestName: data.guestName,
+            giftName: gift.name,
+            listTitle: gift.list.title,
+            quantity: data.quantity,
+            message: data.message
+        });
+    }
 
     revalidatePath(`/list/${gift.listId}`);
 }
