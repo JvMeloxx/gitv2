@@ -239,31 +239,29 @@ export default function CreateList() {
                             </div>
                         </div>
 
-                        {/* Background Selection */}
+                        {/* Background Pattern Selection */}
                         <div className="space-y-3">
                             <label className="text-sm font-medium text-gray-700 block">
-                                Imagem de Fundo (Opcional)
+                                Estampa de Fundo (Opcional)
                             </label>
-                            <div className="relative w-full h-24 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden hover:border-pink-300 transition-colors group">
-                                {formData.backgroundImageUrl ? (
-                                    <>
-                                        <img src={formData.backgroundImageUrl} alt="Background Preview" className="w-full h-full object-cover opacity-50" />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/5">
-                                            <span className="bg-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">Alterar Fundo</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-1 text-gray-400">
-                                        <ImageIcon className="w-6 h-6" />
-                                        <span className="text-xs font-medium">Subir foto de fundo (Fixo)</span>
-                                    </div>
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={(e) => handleImageChange(e, "backgroundImageUrl")}
-                                />
+                            <div className="grid grid-cols-4 gap-2">
+                                {[
+                                    { id: "none", label: "Nenhum", preview: "bg-gray-100" },
+                                    { id: "floral", label: "Florido", preview: "bg-rose-50" },
+                                    { id: "pastel", label: "Pastel", preview: "bg-blue-50" },
+                                    { id: "stripes", label: "Listras", preview: "bg-gray-50 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#000_2px,#000_1px)] opacity-20" },
+                                ].map((p) => (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, backgroundImageUrl: p.id })}
+                                        className={`p-2 rounded-lg border-2 transition-all flex flex-col items-center gap-1 ${formData.backgroundImageUrl === p.id ? "border-pink-500 bg-pink-50" : "border-gray-100 hover:border-pink-200"
+                                            }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-md ${p.preview} border border-gray-200`} />
+                                        <span className="text-[10px] font-medium">{p.label}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 

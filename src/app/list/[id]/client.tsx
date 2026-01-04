@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Gift as GiftIcon, MapPin, Calendar } from "lucide-react";
 import { selectGift } from "@/app/actions";
-import { VISUAL_THEMES, ThemeType } from "@/lib/themes";
+import { VISUAL_THEMES, ThemeType, BACKGROUND_PATTERNS, PatternType } from "@/lib/themes";
 
 // Match Prisma type
 type GiftWithSelection = {
@@ -107,16 +107,16 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const themeKey = (list.theme as ThemeType) || "default";
     const theme = VISUAL_THEMES[themeKey] || VISUAL_THEMES.default;
 
+    const patternKey = (list.backgroundImageUrl as PatternType) || "none";
+    const pattern = BACKGROUND_PATTERNS[patternKey] || BACKGROUND_PATTERNS.none;
+
     return (
         <div className="min-h-screen relative transition-colors duration-500" style={{ backgroundColor: theme.background }}>
-            {/* Custom Fixed Background Image */}
-            {list.backgroundImageUrl && (
+            {/* Curated Fixed Background Pattern */}
+            {patternKey !== "none" && (
                 <div
-                    className="fixed inset-0 z-0 pointer-events-none opacity-40 bg-cover bg-center bg-no-repeat"
-                    style={{
-                        backgroundImage: `url(${list.backgroundImageUrl})`,
-                        backgroundAttachment: 'fixed'
-                    }}
+                    className="fixed inset-0 z-0 pointer-events-none opacity-40 shadow-inner"
+                    style={pattern.style}
                 />
             )}
 

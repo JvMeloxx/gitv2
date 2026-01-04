@@ -66,3 +66,43 @@ export const VISUAL_THEMES: Record<ThemeType, ThemeColors> = {
         buttonText: "#ffffff"
     }
 };
+
+export type PatternType = "none" | "floral" | "pastel" | "stripes";
+
+export interface BackgroundPattern {
+    id: PatternType;
+    label: string;
+    style: React.CSSProperties;
+}
+
+export const BACKGROUND_PATTERNS: Record<PatternType, BackgroundPattern> = {
+    none: {
+        id: "none",
+        label: "Sem Fundo",
+        style: {}
+    },
+    floral: {
+        id: "floral",
+        label: "Florido",
+        style: {
+            backgroundImage: `radial-gradient(#0000000a 2px, transparent 2px), radial-gradient(#0000000a 2px, transparent 2px)`,
+            backgroundSize: "30px 30px",
+            backgroundPosition: "0 0, 15px 15px",
+        }
+    },
+    pastel: {
+        id: "pastel",
+        label: "Tom Pastel",
+        style: {
+            background: "radial-gradient(circle, #00000005 10%, transparent 10%)",
+            backgroundSize: "20px 20px",
+        }
+    },
+    stripes: {
+        id: "stripes",
+        label: "Listras",
+        style: {
+            background: "repeating-linear-gradient(45deg, #00000005, #00000005 10px, transparent 10px, transparent 20px)",
+        }
+    }
+};
