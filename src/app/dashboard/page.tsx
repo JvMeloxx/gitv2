@@ -61,7 +61,10 @@ export default async function DashboardPage() {
                                     <CardHeader>
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-                                                {list.eventType}
+                                                {list.eventType === 'wedding' ? 'Casamento' :
+                                                    list.eventType === 'baby_shower' ? 'Chá de Bebê' :
+                                                        list.eventType === 'housewarming' ? 'Chá de Casa Nova' :
+                                                            list.eventType === 'birthday' ? 'Aniversário' : 'Outro'}
                                             </div>
                                         </div>
                                         <CardTitle className="text-xl group-hover:text-pink-600 transition-colors">

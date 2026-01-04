@@ -13,11 +13,10 @@ import { getSession, login, logout } from "@/lib/auth";
 
 export async function registerUser(name: string, email: string, password: string) {
     try {
-        console.log("DEBUG: Registering user...", { email });
         // Check if user exists
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
-            return { error: "Email already registered." };
+            return { error: "Email já cadastrado." };
         }
 
         const passwordHash = await hashPassword(password);
@@ -34,8 +33,8 @@ export async function registerUser(name: string, email: string, password: string
         redirect("/dashboard");
     } catch (error) {
         if (error instanceof Error && error.message === "NEXT_REDIRECT") throw error;
-        console.error("DEBUG: registerUser error:", error);
-        return { error: "Falha na conexão com o banco de dados. Verifique a DATABASE_URL na Vercel." };
+        console.error("registerUser error:", error);
+        return { error: "Ocorreu um erro ao criar a conta. Tente novamente." };
     }
 }
 
@@ -69,7 +68,6 @@ export async function createGiftList(formData: {
         const userId = session?.userId;
 
         const { eventType, organizerName, title, eventDate, location } = formData;
-        console.log("DEBUG: Creating gift list...", { title, userId });
 
         // Generate template items
         const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
@@ -100,7 +98,7 @@ export async function createGiftList(formData: {
         redirect(`/dashboard/${list.id}`);
     } catch (error) {
         if (error instanceof Error && error.message === "NEXT_REDIRECT") throw error;
-        console.error("DEBUG: createGiftList error:", error);
+        console.error("createGiftList error:", error);
         throw error;
     }
 }
