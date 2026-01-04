@@ -10,9 +10,13 @@ export async function Header() {
     let user = null;
 
     if (session?.userId) {
-        user = await prisma.user.findUnique({
-            where: { id: session.userId }
-        });
+        try {
+            user = await prisma.user.findUnique({
+                where: { id: session.userId }
+            });
+        } catch (error) {
+            console.error("Header: Failed to fetch user", error);
+        }
     }
 
     return (

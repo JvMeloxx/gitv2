@@ -5,7 +5,13 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
-    const session = await getSession();
+    let session = null;
+    try {
+        session = await getSession();
+    } catch (error) {
+        console.error("Home: Failed to get session", error);
+    }
+
     if (session) {
         redirect("/dashboard");
     }
