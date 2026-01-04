@@ -45,6 +45,7 @@ export default async function Home() {
 
                 <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl mb-4">
                     Gifts<span className="text-pink-500">2</span>
+                    <span className="text-[10px] font-normal text-gray-400 opacity-50 block sm:inline sm:ml-2">v3.0.1</span>
                 </h1>
 
                 <p className="text-xl text-gray-600 mb-8 leading-relaxed">
