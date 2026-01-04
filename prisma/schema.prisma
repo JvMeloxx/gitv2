@@ -17,25 +17,24 @@ model User {
 }
 
 model GiftList {
-  id            String   @id @default(uuid())
-  slug          String   @unique
+  id            String       @id @default(uuid())
+  slug          String       @unique
   title         String
   organizerName String
   eventType     String
   eventDate     String
   location      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  gifts         Gift[]
   attendances   Attendance[]
+  gifts         Gift[]
+  user          User?        @relation(fields: [userId], references: [id])
 }
 
 model Gift {
   id             String      @id @default(uuid())
   listId         String
-  list           GiftList    @relation(fields: [listId], references: [id], onDelete: Cascade)
   name           String
   category       String
   description    String?
@@ -43,29 +42,30 @@ model Gift {
   priceEstimate  Float?
   buyLink        String?
   quantityNeeded Int         @default(1)
-  selections     Selection[]
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+  list           GiftList    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  selections     Selection[]
 }
 
 model Selection {
   id           String   @id @default(uuid())
   giftId       String
-  gift         Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
   guestName    String
   guestContact String?
   message      String?
   quantity     Int      @default(1)
   createdAt    DateTime @default(now())
+  gift         Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
 }
 
 model Attendance {
   id           String   @id @default(uuid())
   listId       String
-  list         GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
   guestName    String
   guestContact String?
-  status       String   // "yes", "maybe", "no"
+  status       String
   message      String?
   createdAt    DateTime @default(now())
+  list         GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
 }
