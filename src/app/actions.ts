@@ -159,34 +159,70 @@ export async function selectGift(giftId: string, data: {
     message?: string;
     quantity: number;
 }) {
-    const gift = await prisma.gift.findUnique({
-        where: { id: giftId },
-        include: { list: { include: { user: true } } }
-    });
-    if (!gift) throw new Error("Gift not found");
-
-    await prisma.selection.create({
-        data: {
-            giftId,
-            ...data
-        }
-    });
-
-    // Send notification if list has an owner with email
-    if (gift.list.user?.email) {
-        const { sendGiftSelectionEmail } = await import("@/lib/email");
-        await sendGiftSelectionEmail({
-            to: gift.list.user.email,
-            organizerName: gift.list.user.name,
-            guestName: data.guestName,
-            giftName: gift.name,
-            listTitle: gift.list.title,
-            quantity: data.quantity,
-            message: data.message
+    try {
+        console.log("DEBUG: selectGift started", { giftId, data });
+        const gift = await prisma.gift.findUnique({
+            where: { id: giftId },
+            include: { list: { include: { user: true } } }
         });
-    }
+        if (!gift) throw new Error("Gift not found");
 
-    revalidatePath(`/list/${gift.listId}`);
+        await prisma.selection.create({
+            data: {
+                giftId,
+                ...data
+            }
+        });
+
+        // Send notification if list has an owner with email
+        if (gift.list.user?.email) {
+            try {
+                const { sendGiftSelectionEmail } = await import("@/lib/email");
+                await sendGiftSelectionEmail({
+                    to: gift.list.user.email,
+                    organizerName: gift.list.user.name,
+                    guestName: data.guestName,
+                    giftName: gift.name,
+                    listTitle: gift.list.title,
+                    quantity: data.quantity,
+                    message: data.message
+                });
+            } catch (emailError) {
+                console.error("DEBUG: Failed to send email", emailError);
+            }
+        }
+
+        console.log("DEBUG: selectGift success, revalidating paths");
+        revalidatePath(`/list/${gift.listId}`);
+        revalidatePath(`/list/${gift.list.slug}`);
+        revalidatePath(`/dashboard/${gift.listId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("DEBUG: selectGift error:", error);
+        return { error: "Ocorreu um erro ao confirmar o presente. Tente novamente." };
+    }
+}
+
+export async function submitRSVP(listId: string, data: {
+    guestName: string;
+    guestContact?: string;
+    status: string;
+    message?: string;
+}) {
+    try {
+        await prisma.attendance.create({
+            data: {
+                listId,
+                ...data
+            }
+        });
+        revalidatePath(`/list/${listId}`);
+        revalidatePath(`/dashboard/${listId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("submitRSVP error:", error);
+        return { error: "Ocorreu um erro ao confirmar presença." };
+    }
 }
 
 export async function deleteGiftList(listId: string) {

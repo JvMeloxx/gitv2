@@ -29,6 +29,7 @@ model GiftList {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   gifts         Gift[]
+  attendances   Attendance[]
 }
 
 model Gift {
@@ -55,5 +56,16 @@ model Selection {
   guestContact String?
   message      String?
   quantity     Int      @default(1)
+  createdAt    DateTime @default(now())
+}
+
+model Attendance {
+  id           String   @id @default(uuid())
+  listId       String
+  list         GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  guestName    String
+  guestContact String?
+  status       String   // "yes", "maybe", "no"
+  message      String?
   createdAt    DateTime @default(now())
 }

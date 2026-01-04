@@ -38,8 +38,12 @@ type GuestListClientProps = {
 
 export function GuestListClient({ list }: GuestListClientProps) {
     const [selectedGift, setSelectedGift] = useState<GiftWithSelection | null>(null);
+    const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
     const [guestForm, setGuestForm] = useState({ name: "", contact: "", message: "", quantity: 1 });
+    const [rsvpForm, setRsvpForm] = useState({ name: "", contact: "", status: "yes", message: "" });
     const [successMessage, setSuccessMessage] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const calculateProgress = (gift: GiftWithSelection) => {
         const selected = gift.selections.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -49,17 +53,51 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const handleSelectGift = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedGift) return;
+        setError("");
+        setLoading(true);
 
-        await selectGift(selectedGift.id, {
+        const result = await selectGift(selectedGift.id, {
             guestName: guestForm.name,
             guestContact: guestForm.contact,
             message: guestForm.message,
             quantity: guestForm.quantity
         });
 
+        if (result?.error) {
+            setError(result.error);
+            setLoading(false);
+            return;
+        }
+
         setSuccessMessage(`Obrigado, ${guestForm.name}! Você confirmou o presente: ${selectedGift.name}.`);
         setSelectedGift(null);
         setGuestForm({ name: "", contact: "", message: "", quantity: 1 });
+        setLoading(false);
+    };
+
+    const handleRSVP = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        const { submitRSVP } = await import("@/app/actions");
+        const result = await submitRSVP(list.id, {
+            guestName: rsvpForm.name,
+            guestContact: rsvpForm.contact,
+            status: rsvpForm.status,
+            message: rsvpForm.message
+        });
+
+        if (result?.error) {
+            setError(result.error);
+            setLoading(false);
+            return;
+        }
+
+        setSuccessMessage(`Obrigado, ${rsvpForm.name}! Sua presença foi confirmada.`);
+        setIsRSVPModalOpen(false);
+        setRsvpForm({ name: "", contact: "", status: "yes", message: "" });
+        setLoading(false);
     };
 
     return (
@@ -77,6 +115,14 @@ export function GuestListClient({ list }: GuestListClientProps) {
                 <p className="text-lg text-gray-500 max-w-2xl mx-auto">
                     Organizado por {list.organizerName}. Escolha um presente para tornar o dia deles especial!
                 </p>
+                <div className="pt-4 pb-8">
+                    <Button
+                        onClick={() => setIsRSVPModalOpen(true)}
+                        className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-full text-lg font-bold shadow-lg shadow-pink-200 transform hover:scale-105 transition-all"
+                    >
+                        Confirmar Presença
+                    </Button>
+                </div>
             </div>
 
             {/* Grid */}
@@ -87,9 +133,9 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         gift={calculateProgress(gift) as any}
                         isOrganizer={false}
                         onSelect={(g) => {
-                            // We pass generic gift to onSelect, but set typed version
                             setSelectedGift(gift);
                             setGuestForm(prev => ({ ...prev, quantity: 1 }));
+                            setError("");
                         }}
                     />
                 ))}
@@ -140,8 +186,58 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         <Input value={guestForm.message} onChange={e => setGuestForm({ ...guestForm, message: e.target.value })} placeholder="Felicidades!" />
                     </div>
 
+                    {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
+
                     <div className="pt-2">
-                        <Button type="submit" className="w-full bg-pink-500 hover:bg-pink-600">Confirmar Escolha</Button>
+                        <Button type="submit" disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600">
+                            {loading ? "Confirmando..." : "Confirmar Escolha"}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* RSVP Modal */}
+            <Modal
+                isOpen={isRSVPModalOpen}
+                onClose={() => setIsRSVPModalOpen(false)}
+                title="Confirmar Presença"
+                description="Informe se você poderá comparecer ao evento."
+            >
+                <form onSubmit={handleRSVP} className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Seu Nome (Obrigatório)</label>
+                        <Input required value={rsvpForm.name} onChange={e => setRsvpForm({ ...rsvpForm, name: e.target.value })} placeholder="ex: João Silva" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Contato (Opcional)</label>
+                        <Input value={rsvpForm.contact} onChange={e => setRsvpForm({ ...rsvpForm, contact: e.target.value })} placeholder="Email ou Telefone" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Você poderá ir?</label>
+                        <select
+                            className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            value={rsvpForm.status}
+                            onChange={e => setRsvpForm({ ...rsvpForm, status: e.target.value })}
+                        >
+                            <option value="yes">Sim, eu vou!</option>
+                            <option value="maybe">Ainda não sei</option>
+                            <option value="no">Não poderei ir</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Mensagem para os anfitriões (Opcional)</label>
+                        <Input value={rsvpForm.message} onChange={e => setRsvpForm({ ...rsvpForm, message: e.target.value })} placeholder="Felicidades!" />
+                    </div>
+
+                    {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
+
+                    <div className="pt-2">
+                        <Button type="submit" disabled={loading} className="w-full bg-pink-500 hover:bg-pink-600">
+                            {loading ? "Enviando..." : "Confirmar Presença"}
+                        </Button>
                     </div>
                 </form>
             </Modal>
