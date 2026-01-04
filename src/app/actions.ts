@@ -182,7 +182,7 @@ export async function selectGift(giftId: string, data: {
         });
         if (!gift) throw new Error("Gift not found");
 
-        await prisma.selection.create({
+        const selection = await prisma.selection.create({
             data: {
                 giftId,
                 ...data
@@ -211,7 +211,7 @@ export async function selectGift(giftId: string, data: {
         revalidatePath(`/list/${gift.listId}`);
         revalidatePath(`/list/${gift.list.slug}`);
         revalidatePath(`/dashboard/${gift.listId}`);
-        return { success: true };
+        return { success: true, selectionId: selection.id };
     } catch (error) {
         console.error("DEBUG: selectGift error:", error);
         return { error: "Ocorreu um erro ao confirmar o presente. Tente novamente." };
@@ -248,4 +248,18 @@ export async function deleteGiftList(listId: string) {
     });
     revalidatePath("/dashboard");
     redirect("/dashboard");
+}
+export async function cancelSelection(selectionId: string) {
+    try {
+        const selection = await prisma.selection.delete({
+            where: { id: selectionId },
+            include: { gift: true }
+        });
+        revalidatePath(`/list/${selection.gift.listId}`);
+        revalidatePath(`/dashboard/${selection.gift.listId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("cancelSelection error:", error);
+        return { error: "Erro ao remover seleção." };
+    }
 }

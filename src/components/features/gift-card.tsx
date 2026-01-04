@@ -1,7 +1,7 @@
 import { Gift } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Trash2, Edit2, CheckCircle2 } from "lucide-react";
+import { Package, Trash2, Edit2, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GiftCardProps {
@@ -12,9 +12,11 @@ interface GiftCardProps {
     onSelect?: (gift: Gift) => void;
     primaryColor?: string;
     buttonTextColor?: string;
+    mySelectionIds?: string[];
+    onCancelSelection?: (selectionId: string) => void;
 }
 
-export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor, buttonTextColor }: GiftCardProps) {
+export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect, primaryColor, buttonTextColor, mySelectionIds = [], onCancelSelection }: GiftCardProps) {
     const isFullySelected = gift.quantitySelected >= gift.quantityNeeded;
 
     return (
@@ -37,12 +39,27 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                                 <CheckCircle2 className="w-3 h-3" />
                                 {isFullySelected ? "Conquistado!" : "Em progresso"}
                             </div>
-                            <div className="text-[10px] opacity-90 text-center">
+                            <div className="text-[10px] opacity-90 text-center flex flex-col gap-1 items-center">
                                 {gift.selectedBy && gift.selectedBy.length > 0 ? (
-                                    <span>
-                                        Escolhido por {gift.selectedBy[0].guestName}
-                                        {gift.selectedBy.length > 1 && ` e mais ${gift.selectedBy.length - 1}`}
-                                    </span>
+                                    gift.selectedBy.map((sel: any, idx: number) => (
+                                        <div key={sel.id || idx} className="flex items-center gap-1 group/sel">
+                                            <span>
+                                                Escolhido por {sel.guestName}
+                                            </span>
+                                            {mySelectionIds.includes(sel.id) && onCancelSelection && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onCancelSelection(sel.id);
+                                                    }}
+                                                    className="p-0.5 hover:bg-red-200 bg-white/50 rounded-full text-red-500 transition-all flex items-center justify-center"
+                                                    title="Remover minha escolha"
+                                                >
+                                                    <X className="w-2.5 h-2.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
                                 ) : (
                                     "Escolhido"
                                 )}

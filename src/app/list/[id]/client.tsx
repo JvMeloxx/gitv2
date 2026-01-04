@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Gift as GiftIcon, MapPin, Calendar } from "lucide-react";
-import { selectGift } from "@/app/actions";
+import { selectGift, cancelSelection } from "@/app/actions";
 import { VISUAL_THEMES, ThemeType, BACKGROUND_PATTERNS, PatternType } from "@/lib/themes";
+import { useEffect } from "react";
 
 // Match Prisma type
 type GiftWithSelection = {
@@ -21,6 +22,8 @@ type GiftWithSelection = {
     buyLink: string | null;
     quantityNeeded: number;
     selections: {
+        id: string;
+        guestName: string;
         quantity: number;
     }[];
 };
@@ -48,6 +51,30 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [successMessage, setSuccessMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [mySelectionIds, setMySelectionIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem("myGifts2Selections");
+        if (saved) {
+            try {
+                setMySelectionIds(JSON.parse(saved));
+            } catch (e) {
+                console.error("Error loading selections", e);
+            }
+        }
+    }, []);
+
+    const saveSelection = (id: string) => {
+        const updated = [...mySelectionIds, id];
+        setMySelectionIds(updated);
+        localStorage.setItem("myGifts2Selections", JSON.stringify(updated));
+    };
+
+    const removeSavedSelection = (id: string) => {
+        const updated = mySelectionIds.filter(sid => sid !== id);
+        setMySelectionIds(updated);
+        localStorage.setItem("myGifts2Selections", JSON.stringify(updated));
+    };
 
     const calculateProgress = (gift: GiftWithSelection) => {
         const selected = gift.selections.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -73,9 +100,29 @@ export function GuestListClient({ list }: GuestListClientProps) {
             return;
         }
 
+        if (result?.selectionId) {
+            saveSelection(result.selectionId);
+        }
+
         setSuccessMessage(`Obrigado, ${guestForm.name}! Você confirmou o presente: ${selectedGift.name}.`);
         setSelectedGift(null);
         setGuestForm({ name: "", contact: "", message: "", quantity: 1 });
+        setLoading(false);
+    };
+
+    const handleCancelSelection = async (selectionId: string) => {
+        if (!confirm("Deseja realmente remover sua escolha deste presente?")) return;
+
+        setLoading(true);
+        const result = await cancelSelection(selectionId);
+
+        if (result?.error) {
+            setError(result.error);
+            setLoading(false);
+            return;
+        }
+
+        removeSavedSelection(selectionId);
         setLoading(false);
     };
 
@@ -168,6 +215,8 @@ export function GuestListClient({ list }: GuestListClientProps) {
                             isOrganizer={false}
                             primaryColor={theme.primary}
                             buttonTextColor={theme.buttonText}
+                            mySelectionIds={mySelectionIds}
+                            onCancelSelection={handleCancelSelection}
                             onSelect={(g) => {
                                 setSelectedGift(gift);
                                 setGuestForm(prev => ({ ...prev, quantity: 1 }));
