@@ -231,7 +231,12 @@ export async function selectGift(giftId: string | null, data: {
 
         const price = gift ? gift.priceEstimate : data.customAmount;
 
-        if (listData.isCashEnabled && price && mpAccessToken) {
+        if (listData.isCashEnabled && price) {
+            if (!mpAccessToken) {
+                console.error("DEBUG: Missing MP_ACCESS_TOKEN");
+                return { error: "Erro de configuração do sistema: Pagamentos indisponíveis no momento." };
+            }
+
             const fee = price * PLATFORM_FEE_PERCENT;
             const total = price + fee;
 
@@ -329,6 +334,7 @@ export async function selectGift(giftId: string | null, data: {
 
 export async function updateListFinance(listId: string, data: {
     isCashEnabled: boolean;
+    quotaValues?: number[];
 }) {
     const list = await (prisma as any).giftList.update({
         where: { id: listId },

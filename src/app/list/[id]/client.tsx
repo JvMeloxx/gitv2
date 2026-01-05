@@ -41,6 +41,7 @@ type GuestListClientProps = {
         theme: string;
         backgroundImageUrl: string | null;
         isCashEnabled: boolean;
+        quotaValues: number[];
         gifts: any[];
     };
 };
@@ -333,7 +334,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            {[100, 200, 300, 500].map(val => (
+                            {(list.quotaValues || [100, 200, 300, 500]).map((val: number) => (
                                 <button
                                     key={val}
                                     onClick={() => {

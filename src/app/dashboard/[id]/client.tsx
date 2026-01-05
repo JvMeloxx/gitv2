@@ -54,6 +54,7 @@ type DashboardClientProps = {
         location: string | null;
         coverImageUrl: string | null;
         isCashEnabled: boolean;
+        quotaValues: number[];
         gifts: GiftWithSelection[];
         attendances: Attendance[];
     };
@@ -66,6 +67,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
 
     const [financeForm, setFinanceForm] = useState({
         isCashEnabled: list.isCashEnabled,
+        quotaValues: list.quotaValues || [100, 200, 300, 500]
     });
     const [withdrawalForm, setWithdrawalForm] = useState({
         amount: "",
@@ -433,7 +435,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                             <button
                                 onClick={() => {
                                     const newValue = !financeForm.isCashEnabled;
-                                    setFinanceForm({ isCashEnabled: newValue });
+                                    setFinanceForm({ ...financeForm, isCashEnabled: newValue });
                                     updateListFinance(list.id, { isCashEnabled: newValue });
                                 }}
                                 className={`w-full py-3 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${financeForm.isCashEnabled
@@ -476,6 +478,49 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Quota Values Config - NEW CARD */}
+                        {financeForm.isCashEnabled && (
+                            <div className="md:col-span-3 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                                            <Wallet className="w-6 h-6" />
+                                        </div>
+                                        <h3 className="font-bold text-gray-900">Valores das Cotas</h3>
+                                    </div>
+                                    <p className="text-sm text-gray-500 max-w-md">
+                                        Personalize os 4 valores de presentes em dinheiro sugeridos aos seus convidados.
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-3 flex-1 justify-end">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-lg">
+                                        {financeForm.quotaValues.map((val, idx) => (
+                                            <div key={idx} className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">R$</span>
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl py-3 pl-8 pr-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                                    value={val}
+                                                    onChange={(e) => {
+                                                        const newValues = [...financeForm.quotaValues];
+                                                        newValues[idx] = Number(e.target.value);
+                                                        setFinanceForm({ ...financeForm, quotaValues: newValues });
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => updateListFinance(list.id, financeForm)}
+                                        className="h-12 px-6 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                    >
+                                        Salvar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
