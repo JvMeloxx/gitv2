@@ -19,6 +19,7 @@ export default async function GuestList({ params }: { params: Promise<{ id: stri
             theme: true,
             backgroundImageUrl: true,
             isCashEnabled: true,
+            quotaValues: true,
             gifts: {
                 include: {
                     selections: true
