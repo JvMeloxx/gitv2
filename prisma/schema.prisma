@@ -29,15 +29,28 @@ model GiftList {
   coverImageUrl String?
   theme         String       @default("default")
   backgroundImageUrl String?
-  isCashEnabled Boolean @default(false)
-  mercadopagoPublicKey String?
-  mercadopagoAccessToken String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  userId        String?
-  attendances   Attendance[]
-  gifts         Gift[]
-  user          User?        @relation(fields: [userId], references: [id])
+  isCashEnabled      Boolean  @default(false)
+  balance            Float    @default(0)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  userId             String?
+  attendances        Attendance[]
+  gifts              Gift[]
+  selections         Selection[]
+  withdrawalRequests WithdrawalRequest[]
+  user               User?        @relation(fields: [userId], references: [id])
+}
+
+model WithdrawalRequest {
+  id          String   @id @default(uuid())
+  listId      String
+  amount      Float
+  status      String   @default("PENDING") // PENDING, COMPLETED, REJECTED
+  pixKey      String?
+  bankDetails String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  list        GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
 }
 
 model Gift {
@@ -58,7 +71,8 @@ model Gift {
 
 model Selection {
   id           String   @id @default(uuid())
-  giftId       String
+  giftId       String?
+  listId       String?
   guestName    String
   guestContact String?
   message      String?
@@ -67,7 +81,8 @@ model Selection {
   paymentId    String?
   platformFee  Float?
   createdAt    DateTime @default(now())
-  gift         Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  gift         Gift?    @relation(fields: [giftId], references: [id], onDelete: Cascade)
+  list         GiftList? @relation(fields: [listId], references: [id], onDelete: Cascade)
 }
 
 model Attendance {

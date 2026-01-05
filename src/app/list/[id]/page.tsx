@@ -7,24 +7,32 @@ export const dynamic = 'force-dynamic';
 export default async function GuestList({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const queryOptions: any = {
+        select: {
+            id: true,
+            slug: true,
+            title: true,
+            organizerName: true,
+            eventDate: true,
+            location: true,
+            coverImageUrl: true,
+            theme: true,
+            backgroundImageUrl: true,
+            isCashEnabled: true,
+            gifts: {
+                include: {
+                    selections: true
+                }
+            }
+        }
+    };
+
     const list = await prisma.giftList.findUnique({
         where: { slug: id },
-        include: {
-            gifts: {
-                include: {
-                    selections: true
-                }
-            }
-        }
+        ...queryOptions
     }) || await prisma.giftList.findUnique({
         where: { id },
-        include: {
-            gifts: {
-                include: {
-                    selections: true
-                }
-            }
-        }
+        ...queryOptions
     });
 
     if (!list) {

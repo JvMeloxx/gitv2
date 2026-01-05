@@ -104,12 +104,17 @@ export function GuestListClient({ list }: GuestListClientProps) {
         setError("");
         setLoading(true);
 
-        const result = await selectGift(selectedGift.id, {
-            guestName: guestForm.name,
-            guestContact: guestForm.contact,
-            message: guestForm.message,
-            quantity: guestForm.quantity
-        });
+        const result = await selectGift(
+            selectedGift.id.startsWith("quota-") ? null : selectedGift.id,
+            {
+                guestName: guestForm.name,
+                guestContact: guestForm.contact,
+                message: guestForm.message,
+                quantity: Number(guestForm.quantity),
+                listId: list.id,
+                customAmount: selectedGift.id.startsWith("quota-") ? selectedGift.priceEstimate || 0 : undefined
+            }
+        );
 
         if (result?.error) {
             setError(result.error);
@@ -131,6 +136,21 @@ export function GuestListClient({ list }: GuestListClientProps) {
         setSelectedGift(null);
         setGuestForm({ name: "", contact: "", message: "", quantity: 1 });
         setLoading(false);
+    };
+
+    const handleSelectQuota = async (amount: number) => {
+        // We simulate selecting a "cash gift" by creating a temporary one or 
+        // using a special ID. However, the existing selectGift expects a real giftId.
+        // For simplicity, we can just suggest the user to use the existing items 
+        // OR we can implement a generic "Cash Contribution" action.
+        // User said: "criar automático presentes em dinheiro de 100 a 500 reais"
+        // This implies these should probably BE in the gifts list.
+
+        // I will implement a quick shortcut to select an existing gift that matches 
+        // the category "Dinheiro" or "Cotas" if it exists, or just open a generic modal.
+
+        // Let's stick to the user's "Automatic" request by injecting these into the filteredGifts 
+        // or having a separate section.
     };
 
     const handleCancelSelection = async (selectionId: string) => {
@@ -302,6 +322,76 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         </div>
                     </div>
                 </div>
+
+                {list.isCashEnabled && (
+                    <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-blue-100 p-2 rounded-xl">
+                                <CreditCard className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold" style={{ color: theme.text }}>Cotas de Presente</h2>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {[100, 200, 300, 500].map(val => (
+                                <button
+                                    key={val}
+                                    onClick={() => {
+                                        // We'll create a "Virtual Gift" object for the modal
+                                        setSelectedGift({
+                                            id: `quota-${val}`,
+                                            name: `Cota de R$ ${val}`,
+                                            priceEstimate: val,
+                                            category: "Cota",
+                                            quantityNeeded: 999,
+                                            selections: [],
+                                            imageUrl: null,
+                                            description: "Contribuição em dinheiro para o evento.",
+                                            listId: list.id,
+                                            buyLink: null
+                                        } as any);
+                                        setGuestForm(prev => ({ ...prev, quantity: 1 }));
+                                    }}
+                                    className="bg-white/90 hover:bg-white p-6 rounded-3xl shadow-sm border border-blue-50 flex flex-col items-center gap-2 group transition-all hover:shadow-md hover:-translate-y-1"
+                                >
+                                    <span className="text-sm font-bold text-blue-600 uppercase tracking-wider">Cota</span>
+                                    <span className="text-3xl font-extrabold text-gray-900">R$ {val}</span>
+                                    <div className="mt-2 text-xs font-bold text-white bg-blue-500 px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        Presentear
+                                    </div>
+                                </button>
+                            ))}
+                            {/* Custom Value Quota */}
+                            <button
+                                onClick={() => {
+                                    const val = prompt("Qual o valor que deseja presentear?", "50");
+                                    if (!val || isNaN(Number(val))) return;
+
+                                    setSelectedGift({
+                                        id: `quota-custom`,
+                                        name: `Presente em Dinheiro`,
+                                        priceEstimate: Number(val),
+                                        category: "Cota",
+                                        quantityNeeded: 1,
+                                        selections: [],
+                                        imageUrl: null,
+                                        description: "Contribuição personalizada para o evento.",
+                                        listId: list.id,
+                                        buyLink: null
+                                    } as any);
+                                    setGuestForm(prev => ({ ...prev, quantity: 1 }));
+                                }}
+                                className="bg-white/90 hover:bg-white p-6 rounded-3xl shadow-sm border border-dashed border-blue-200 flex flex-col items-center gap-2 group transition-all hover:shadow-md hover:-translate-y-1"
+                            >
+                                <span className="text-sm font-bold text-blue-600 uppercase tracking-wider">Outro Valor</span>
+                                <span className="text-3xl font-extrabold text-gray-400">R$ ...</span>
+                                <div className="mt-2 text-xs font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full">
+                                    Definir Valor
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-[400px]">

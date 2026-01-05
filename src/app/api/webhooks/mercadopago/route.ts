@@ -10,32 +10,51 @@ export async function POST(request: Request) {
         // We only care about payment notifications
         if (type === "payment") {
             const paymentId = data.id;
+            const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+
+            if (!mpAccessToken) {
+                console.error("MP_ACCESS_TOKEN not configured");
+                return NextResponse.json({ error: "Configuration Error" }, { status: 500 });
+            }
 
             // 1. Get payment details from Mercado Pago
-            // We need an access token. Since webhooks don't tell us which list it belongs to easily
-            // except via external_reference, we'll need to fetch the payment with a master token 
-            // OR find the list first. 
-            // BUT Mercado Pago's 'payment' notification usually doesn't include external_reference 
-            // in the notification itself, only in the payment details.
+            const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
+            const payment = new Payment(client);
+            const mpPayment = await payment.get({ id: paymentId });
 
-            // To make it simple for this MVP, we find the selection by paymentId
-            const selection = await (prisma as any).selection.findFirst({
-                where: { paymentId: String(paymentId) },
-                include: { gift: { include: { list: true } } }
-            });
+            if (mpPayment.status === "approved") {
+                // 2. Find Selection by Payment ID
+                // We'll search by paymentId. It could be stored in Selection.paymentId
+                // OR we can find it by external_reference (listId) and other criteria if needed.
+                // Our Selection model HAS paymentId.
+                const selection = await (prisma as any).selection.findFirst({
+                    where: { paymentId: String(paymentId) },
+                    include: { gift: true, list: true }
+                });
 
-            if (selection && (selection as any).gift.list.mercadopagoAccessToken) {
-                const client = new MercadoPagoConfig({ accessToken: (selection as any).gift.list.mercadopagoAccessToken });
-                const payment = new Payment(client);
+                if (selection && selection.paymentStatus !== "PAID") {
+                    const listId = selection.gift?.listId || selection.listId;
+                    const amount = (mpPayment.transaction_amount || 0);
+                    // The organizer receives the transaction_amount minus the platform fee
+                    // Wait, guests pay the fee ON TOP. So if gift is 100, guest pays 105.
+                    // transaction_amount will be 105.
+                    // Organizer should receive 100.
+                    // Our fee is 5%. Total = Price * 1.05.
+                    // Price = Total / 1.05.
+                    const organizerAmount = amount / 1.05;
 
-                const mpPayment = await payment.get({ id: paymentId });
+                    await prisma.$transaction([
+                        (prisma as any).selection.update({
+                            where: { id: selection.id },
+                            data: { paymentStatus: "PAID" }
+                        }),
+                        (prisma as any).giftList.update({
+                            where: { id: listId },
+                            data: { balance: { increment: organizerAmount } }
+                        })
+                    ]);
 
-                if (mpPayment.status === "approved") {
-                    await (prisma as any).selection.update({
-                        where: { id: selection.id },
-                        data: { paymentStatus: "PAID" }
-                    });
-                    console.log(`Payment confirmed for selection ${selection.id}`);
+                    console.log(`Payment confirmed for selection ${selection.id}. Credited R$ ${organizerAmount.toFixed(2)} to list ${listId}`);
                 }
             }
         }

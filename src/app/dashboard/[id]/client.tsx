@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, Plus, Share2, LayoutDashboard, Camera, Image as ImageIcon, Loader2, Eye, MessageSquareHeart, UserCheck, Calendar, Wallet, Check, ExternalLink } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
-import { addGift, updateGift, deleteGift } from "@/app/actions";
+import { addGift, updateGift, deleteGift, updateListFinance, requestWithdrawal } from "@/app/actions";
 import { resizeImage } from "@/lib/images";
+import Link from "next/link";
 
 // We define a local type that matches the Prisma payload including selections
 type GiftWithSelection = {
@@ -53,8 +54,6 @@ type DashboardClientProps = {
         location: string | null;
         coverImageUrl: string | null;
         isCashEnabled: boolean;
-        mercadopagoPublicKey: string | null;
-        mercadopagoAccessToken: string | null;
         gifts: GiftWithSelection[];
         attendances: Attendance[];
     };
@@ -67,9 +66,13 @@ export function DashboardClient({ list }: DashboardClientProps) {
 
     const [financeForm, setFinanceForm] = useState({
         isCashEnabled: list.isCashEnabled,
-        mercadopagoPublicKey: list.mercadopagoPublicKey || "",
-        mercadopagoAccessToken: list.mercadopagoAccessToken || "",
     });
+    const [withdrawalForm, setWithdrawalForm] = useState({
+        amount: "",
+        pixKey: "",
+    });
+    const [isWithdrawalLoading, setIsWithdrawalLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Form state
     const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
@@ -130,9 +133,42 @@ export function DashboardClient({ list }: DashboardClientProps) {
 
     const handleUpdateFinance = async (e: React.FormEvent) => {
         e.preventDefault();
-        const { updateListFinance } = await import("@/app/actions");
-        await updateListFinance(list.id, financeForm);
-        alert("Configurações financeiras atualizadas!");
+        setIsLoading(true);
+        try {
+            await updateListFinance(list.id, financeForm);
+            alert("Configurações financeiras atualizadas!");
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar configurações.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRequestWithdrawal = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!withdrawalForm.amount || Number(withdrawalForm.amount) <= 0) {
+            alert("Informe um valor válido para o saque.");
+            return;
+        }
+        setIsWithdrawalLoading(true);
+        try {
+            const result = await requestWithdrawal(list.id, {
+                amount: Number(withdrawalForm.amount),
+                pixKey: withdrawalForm.pixKey
+            });
+            if (result.error) {
+                alert(result.error);
+            } else {
+                alert("Solicitação de saque enviada com sucesso! Você receberá o valor em breve.");
+                setWithdrawalForm({ amount: "", pixKey: "" });
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao solicitar saque.");
+        } finally {
+            setIsWithdrawalLoading(false);
+        }
     };
 
     // Helper to map Prisma gift to UI Gift type or just use it directly
@@ -380,98 +416,126 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     )}
                 </div>
             ) : activeTab === "finance" ? (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-2xl mx-auto">
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
-                                    <Wallet className="w-8 h-8" />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-4xl mx-auto space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Status Card */}
+                        <div className="md:col-span-1 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className={`p-2 rounded-xl ${financeForm.isCashEnabled ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
+                                        <Wallet className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="font-bold text-gray-900">Status Geral</h3>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold">Gestão Financeira</h2>
-                                    <p className="text-blue-100 opacity-80">Receba o valor dos presentes em dinheiro via Mercado Pago.</p>
-                                </div>
+                                <p className="text-sm text-gray-500 mb-6">Controle se sua lista aceita presentes em dinheiro.</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                                    <p className="text-xs uppercase font-bold opacity-70 mb-1">Total Arrecadado</p>
-                                    <p className="text-2xl font-bold text-white">
-                                        R$ {list.gifts.reduce((acc, g) => acc + g.selections.filter(s => (s as any).paymentStatus === "PAID").reduce((sum, s) => sum + (g.priceEstimate || 0) * s.quantity, 0), 0).toFixed(2)}
-                                    </p>
+                            <button
+                                onClick={() => {
+                                    const newValue = !financeForm.isCashEnabled;
+                                    setFinanceForm({ isCashEnabled: newValue });
+                                    updateListFinance(list.id, { isCashEnabled: newValue });
+                                }}
+                                className={`w-full py-3 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${financeForm.isCashEnabled
+                                    ? 'bg-green-500 text-white shadow-lg shadow-green-100'
+                                    : 'bg-gray-100 text-gray-500'
+                                    }`}
+                            >
+                                {financeForm.isCashEnabled ? (
+                                    <><Check className="w-5 h-5" /> Ativo</>
+                                ) : (
+                                    'Ativar Recebimento'
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Balance Card */}
+                        <div className="md:col-span-2 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-3xl shadow-xl p-8 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-8 opacity-10">
+                                <Wallet className="w-32 h-32" />
+                            </div>
+
+                            <div className="relative z-10 flex flex-col h-full justify-between">
+                                <div>
+                                    <p className="text-blue-100 font-medium mb-1">Saldo Disponível</p>
+                                    <h2 className="text-5xl font-extrabold mb-8">
+                                        R$ {(list as any).balance?.toFixed(2) || "0.00"}
+                                    </h2>
                                 </div>
-                                <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                                    <p className="text-xs uppercase font-bold opacity-70 mb-1">Status do Sistema</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${list.isCashEnabled ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
-                                        <p className="font-bold">{list.isCashEnabled ? 'Ativo' : 'Inativo'}</p>
+
+                                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                                    <div>
+                                        <p className="text-blue-100 text-xs uppercase font-bold tracking-wider mb-1">Total Recebido</p>
+                                        <p className="text-xl font-bold">R$ {list.gifts.reduce((acc, g) => acc + g.selections.filter(s => (s as any).paymentStatus === "PAID").reduce((sum, s) => sum + (g.priceEstimate || 0) * s.quantity, 0), 0).toFixed(2)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-blue-200 text-xs opacity-60 leading-tight">
+                                            O valor disponível já considera a taxa de serviço de 5%.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <form onSubmit={handleUpdateFinance} className="p-8 space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                <div>
-                                    <p className="font-bold text-gray-900">Ativar Recebimento em Dinheiro</p>
-                                    <p className="text-sm text-gray-500">Convidados pagarão o valor estimado do presente.</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setFinanceForm(prev => ({ ...prev, isCashEnabled: !prev.isCashEnabled }))}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${financeForm.isCashEnabled ? 'bg-green-500' : 'bg-gray-200'}`}
-                                >
-                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${financeForm.isCashEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                                    <ExternalLink className="w-4 h-4 text-blue-500" />
-                                    <span>Configuração Mercado Pago</span>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Public Key</label>
-                                    <Input
-                                        placeholder="APP_USR-..."
-                                        value={financeForm.mercadopagoPublicKey}
-                                        onChange={e => setFinanceForm({ ...financeForm, mercadopagoPublicKey: e.target.value })}
-                                        className="bg-gray-50 border-gray-100 rounded-xl"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Access Token</label>
-                                    <Input
-                                        type="password"
-                                        placeholder="APP_USR-..."
-                                        value={financeForm.mercadopagoAccessToken}
-                                        onChange={e => setFinanceForm({ ...financeForm, mercadopagoAccessToken: e.target.value })}
-                                        className="bg-gray-50 border-gray-100 rounded-xl"
-                                    />
-                                </div>
-
-                                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                    <p className="text-xs text-blue-700 leading-relaxed">
-                                        As chaves podem ser encontradas em <strong>Mercado Pago Developers &gt; Suas Aplicações &gt; Credenciais de Produção</strong>. O dinheiro cairá direto na sua conta MP.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all">
-                                Salvar Configurações
-                            </Button>
-                        </form>
                     </div>
 
-                    <div className="mt-8 p-6 bg-amber-50 rounded-3xl border border-amber-100">
-                        <h4 className="font-bold text-amber-900 mb-2 flex items-center gap-2">
-                            <span>💡</span> Sobre a Taxa de Serviço
-                        </h4>
-                        <p className="text-sm text-amber-800 leading-relaxed">
-                            Uma taxa de <strong>5%</strong> será adicionada ao valor total para o convidado para cobrir custos da plataforma e transação. Você recebe 100% do valor estimado que cadastrou no presente.
-                        </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Withdrawal Section */}
+                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <ExternalLink className="w-5 h-5 text-blue-500" />
+                                Solicitar Saque
+                            </h3>
+
+                            <form onSubmit={handleRequestWithdrawal} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Valor do Saque</label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={withdrawalForm.amount}
+                                        onChange={e => setWithdrawalForm({ ...withdrawalForm, amount: e.target.value })}
+                                        className="bg-gray-50 border-gray-100 rounded-xl h-12"
+                                        max={(list as any).balance}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Chave PIX</label>
+                                    <Input
+                                        placeholder="CPF, Email, Celular ou Aleatória"
+                                        value={withdrawalForm.pixKey}
+                                        onChange={e => setWithdrawalForm({ ...withdrawalForm, pixKey: e.target.value })}
+                                        className="bg-gray-50 border-gray-100 rounded-xl h-12"
+                                    />
+                                </div>
+                                <Button
+                                    disabled={isWithdrawalLoading || !(list as any).balance || (list as any).balance <= 0}
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl font-bold mt-4"
+                                >
+                                    {isWithdrawalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Solicitar Saque"}
+                                </Button>
+                            </form>
+                        </div>
+
+                        {/* Info Section */}
+                        <div className="bg-blue-50 rounded-3xl border border-blue-100 p-8">
+                            <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                                <span>🛡️</span> Segurança e Prazos
+                            </h3>
+                            <ul className="space-y-4 text-sm text-blue-800">
+                                <li className="flex gap-3">
+                                    <span className="font-bold">1.</span>
+                                    <p>Os pagamentos são processados via <strong>Mercado Pago</strong> (Gifts2 Oficial) para garantir segurança total para seus convidados.</p>
+                                </li>
+                                <li className="flex gap-3">
+                                    <span className="font-bold">2.</span>
+                                    <p>As solicitações de saque são processadas em até <strong>24 horas úteis</strong> após o pedido.</p>
+                                </li>
+                                <li className="flex gap-3">
+                                    <span className="font-bold">3.</span>
+                                    <p>Nosso suporte está disponível 24h para ajudar com qualquer dúvida sobre sua carteira.</p>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             ) : (

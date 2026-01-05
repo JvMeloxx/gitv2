@@ -16,7 +16,15 @@ export default async function DashboardPage() {
     const lists = await prisma.giftList.findMany({
         where: { userId: session.userId },
         orderBy: { createdAt: "desc" },
-        include: { gifts: true }
+        select: {
+            id: true,
+            slug: true,
+            title: true,
+            eventType: true,
+            eventDate: true,
+            location: true,
+            gifts: true,
+        }
     });
 
     const user = await prisma.user.findUnique({ where: { id: session.userId } });

@@ -190,59 +190,77 @@ export async function deleteGift(giftId: string) {
     revalidatePath(`/dashboard/${gift.listId}`);
 }
 
-export async function selectGift(giftId: string, data: {
+export async function selectGift(giftId: string | null, data: {
     guestName: string;
     guestContact?: string;
     message?: string;
     quantity: number;
+    listId?: string;
+    customAmount?: number;
 }) {
     try {
         console.log("DEBUG: selectGift started", { giftId, data });
-        const gift = await prisma.gift.findUnique({
-            where: { id: giftId },
-            include: { list: { include: { user: true } } }
-        });
-        if (!gift) throw new Error("Gift not found");
 
-        // Create Selection
+        let gift: any = null;
+        let listId = data.listId;
+
+        if (giftId && !giftId.startsWith("quota-")) {
+            gift = await prisma.gift.findUnique({
+                where: { id: giftId },
+                include: { list: { include: { user: true } } }
+            });
+            if (!gift) throw new Error("Gift not found");
+            listId = gift.listId;
+        }
+
+        // Create Selection Data
         const selectionData: any = {
-            giftId,
-            ...data
+            giftId: giftId && !giftId.startsWith("quota-") ? giftId : null,
+            listId: !giftId || giftId.startsWith("quota-") ? listId : null,
+            guestName: data.guestName,
+            guestContact: data.guestContact,
+            message: data.message,
+            quantity: data.quantity,
         };
 
         // Handle Payment if Cash is enabled
-        const listData = gift.list as any;
+        const listObj = gift?.list || await (prisma as any).giftList.findUnique({ where: { id: listId }, include: { user: true } });
+        const listData = listObj as any;
         let checkoutUrl = null;
-        if (listData.isCashEnabled && gift.priceEstimate && listData.mercadopagoAccessToken) {
-            const fee = gift.priceEstimate * PLATFORM_FEE_PERCENT;
-            const total = gift.priceEstimate + fee;
+        const mpAccessToken = process.env.MP_ACCESS_TOKEN;
+
+        const price = gift ? gift.priceEstimate : data.customAmount;
+
+        if (listData.isCashEnabled && price && mpAccessToken) {
+            const fee = price * PLATFORM_FEE_PERCENT;
+            const total = price + fee;
 
             selectionData.paymentStatus = "PENDING";
             selectionData.platformFee = fee;
 
             try {
-                const client = new MercadoPagoConfig({ accessToken: listData.mercadopagoAccessToken });
+                const client = new MercadoPagoConfig({ accessToken: mpAccessToken });
                 const preference = new Preference(client);
 
                 const response = await preference.create({
                     body: {
                         items: [
                             {
-                                id: gift.id,
-                                title: gift.name,
+                                id: giftId || listData.id,
+                                title: gift ? gift.name : `Cota de Presente - ${listData.title}`,
                                 quantity: data.quantity,
                                 unit_price: total,
                                 currency_id: 'BRL',
                             }
                         ],
                         back_urls: {
-                            success: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=success`,
-                            failure: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=failure`,
-                            pending: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${gift.list.slug}?payment=pending`,
+                            success: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${listData.slug}?payment=success`,
+                            failure: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${listData.slug}?payment=failure`,
+                            pending: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/list/${listData.slug}?payment=pending`,
                         },
                         auto_return: 'approved',
                         notification_url: `${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/webhooks/mercadopago`,
-                        external_reference: listData.id, // We'll need this to find the list in the webhook
+                        external_reference: listData.id,
                     }
                 });
 
@@ -259,9 +277,8 @@ export async function selectGift(giftId: string, data: {
         });
 
         // Send notifications (only if NOT cash or if we want to notify about pending?)
-        // Recommended: Notify only after PAID in a real app, but for now we follow old logic
-        const organizerEmail = (gift.list as any).organizerEmail || gift.list.user?.email;
-        const organizerPhone = (gift.list as any).organizerPhone;
+        const organizerEmail = listData.organizerEmail || listData.user?.email;
+        const organizerPhone = listData.organizerPhone;
 
         if (organizerEmail || organizerPhone) {
             try {
@@ -271,10 +288,10 @@ export async function selectGift(giftId: string, data: {
                 if (organizerEmail) {
                     await sendGiftSelectionEmail({
                         to: organizerEmail,
-                        organizerName: gift.list.organizerName,
+                        organizerName: listData.organizerName,
                         guestName: data.guestName,
-                        giftName: gift.name,
-                        listTitle: gift.list.title,
+                        giftName: gift?.name || "Cota de Presente",
+                        listTitle: listData.title,
                         quantity: data.quantity,
                         message: data.message
                     });
@@ -285,7 +302,7 @@ export async function selectGift(giftId: string, data: {
                     await sendGiftSelectionSMS({
                         to: organizerPhone,
                         guestName: data.guestName,
-                        giftName: gift.name,
+                        giftName: gift?.name || "Cota de Presente",
                         quantity: data.quantity
                     });
                 }
@@ -295,9 +312,9 @@ export async function selectGift(giftId: string, data: {
         }
 
         console.log("DEBUG: selectGift success, revalidating paths");
-        revalidatePath(`/list/${gift.listId}`);
-        revalidatePath(`/list/${gift.list.slug}`);
-        revalidatePath(`/dashboard/${gift.listId}`);
+        revalidatePath(`/list/${listData.id}`);
+        revalidatePath(`/list/${listData.slug}`);
+        revalidatePath(`/dashboard/${listData.id}`);
 
         return {
             success: true,
@@ -312,8 +329,6 @@ export async function selectGift(giftId: string, data: {
 
 export async function updateListFinance(listId: string, data: {
     isCashEnabled: boolean;
-    mercadopagoPublicKey: string | null;
-    mercadopagoAccessToken: string | null;
 }) {
     const list = await (prisma as any).giftList.update({
         where: { id: listId },
@@ -325,6 +340,34 @@ export async function updateListFinance(listId: string, data: {
     if (list.slug) {
         revalidatePath(`/list/${list.slug}`);
     }
+}
+
+export async function requestWithdrawal(listId: string, data: {
+    amount: number;
+    pixKey?: string;
+    bankDetails?: string;
+}) {
+    const list = await (prisma as any).giftList.findUnique({
+        where: { id: listId },
+        select: { balance: true }
+    });
+
+    if (!list || list.balance < data.amount) {
+        return { error: "Saldo insuficiente para o saque solicitado." };
+    }
+
+    await (prisma as any).withdrawalRequest.create({
+        data: {
+            listId,
+            amount: data.amount,
+            pixKey: data.pixKey,
+            bankDetails: data.bankDetails,
+            status: "PENDING"
+        }
+    });
+
+    revalidatePath(`/dashboard/${listId}`);
+    return { success: true };
 }
 
 export async function submitRSVP(listId: string, data: {
@@ -360,12 +403,15 @@ export async function deleteGiftList(listId: string) {
 }
 export async function cancelSelection(selectionId: string) {
     try {
-        const selection = await prisma.selection.delete({
+        const selection = await (prisma as any).selection.delete({
             where: { id: selectionId },
             include: { gift: true }
         });
-        revalidatePath(`/list/${selection.gift.listId}`);
-        revalidatePath(`/dashboard/${selection.gift.listId}`);
+        const listId = selection.gift?.listId || selection.listId;
+        if (listId) {
+            revalidatePath(`/list/${listId}`);
+            revalidatePath(`/dashboard/${listId}`);
+        }
         return { success: true };
     } catch (error) {
         console.error("cancelSelection error:", error);
