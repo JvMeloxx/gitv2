@@ -33,12 +33,7 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                     <Package className="w-16 h-16 text-gray-300" />
                 )}
 
-                {isCashEnabled && !isFullySelected && !isOrganizer && (
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                        <Wallet className="w-3 h-3" />
-                        EM DINHEIRO
-                    </div>
-                )}
+                {/* Removed 'Em dinheiro' badge as per user request */}
 
                 {gift.quantitySelected > 0 && (
                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center">

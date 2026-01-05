@@ -491,7 +491,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
                         <div className="pt-2">
                             <Button type="submit" disabled={loading} className="w-full text-white flex items-center justify-center gap-2" style={{ backgroundColor: theme.primary }}>
-                                {loading ? "Processando..." : list.isCashEnabled ? (
+                                {loading ? "Processando..." : (list.isCashEnabled && selectedGift?.id.startsWith("quota-")) ? (
                                     <>
                                         <CreditCard className="w-4 h-4" />
                                         Pagar com Mercado Pago

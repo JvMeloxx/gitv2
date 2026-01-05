@@ -481,7 +481,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
 
                         {/* Quota Values Config - NEW CARD */}
                         {financeForm.isCashEnabled && (
-                            <div className="md:col-span-3 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="md:col-span-3 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col gap-6">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
@@ -489,19 +489,19 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                         </div>
                                         <h3 className="font-bold text-gray-900">Valores das Cotas</h3>
                                     </div>
-                                    <p className="text-sm text-gray-500 max-w-md">
+                                    <p className="text-sm text-gray-500">
                                         Personalize os 4 valores de presentes em dinheiro sugeridos aos seus convidados.
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-3 flex-1 justify-end">
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
+                                <div className="flex flex-col gap-4">
+                                    <div className="grid grid-cols-4 gap-4">
                                         {financeForm.quotaValues.map((val, idx) => (
                                             <div key={idx} className="relative group">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold group-focus-within:text-blue-500 transition-colors">R$</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold group-focus-within:text-blue-500 transition-colors">R$</span>
                                                 <input
                                                     type="number"
-                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-10 pr-4 text-lg font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-8 pr-2 text-base font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm text-center"
                                                     value={val}
                                                     onChange={(e) => {
                                                         const newValues = [...financeForm.quotaValues];
@@ -514,9 +514,9 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                     </div>
                                     <button
                                         onClick={() => updateListFinance(list.id, financeForm)}
-                                        className="h-14 px-8 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-0.5"
+                                        className="w-full h-12 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
                                     >
-                                        Salvar
+                                        Salvar Valores
                                     </button>
                                 </div>
                             </div>
