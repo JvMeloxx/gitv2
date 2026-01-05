@@ -50,7 +50,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [selectedGift, setSelectedGift] = useState<GiftWithSelection | null>(null);
     const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
     const [guestForm, setGuestForm] = useState({ name: "", contact: "", message: "", quantity: 1 });
-    const [rsvpForm, setRsvpForm] = useState({ name: "", contact: "", status: "yes", message: "", companionName: "", hasChildren: false });
+    const [rsvpForm, setRsvpForm] = useState({ name: "", contact: "", status: "yes", message: "", adultsCount: 0, childrenCount: 0, babiesCount: 0 });
     const [successMessage, setSuccessMessage] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -181,8 +181,9 @@ export function GuestListClient({ list }: GuestListClientProps) {
             guestContact: rsvpForm.contact,
             status: rsvpForm.status,
             message: rsvpForm.message,
-            companionName: rsvpForm.companionName,
-            hasChildren: rsvpForm.hasChildren
+            adultsCount: rsvpForm.adultsCount,
+            childrenCount: rsvpForm.childrenCount,
+            babiesCount: rsvpForm.babiesCount
         });
 
         if (result?.error) {
@@ -193,7 +194,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
         setSuccessMessage(`Obrigado, ${rsvpForm.name}! Sua presença foi confirmada.`);
         setIsRSVPModalOpen(false);
-        setRsvpForm({ name: "", contact: "", status: "yes", message: "", companionName: "", hasChildren: false });
+        setRsvpForm({ name: "", contact: "", status: "yes", message: "", adultsCount: 0, childrenCount: 0, babiesCount: 0 });
         setLoading(false);
     };
 
@@ -533,38 +534,79 @@ export function GuestListClient({ list }: GuestListClientProps) {
                             </select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Nome do Acompanhante (Opcional)</label>
-                            <Input
-                                value={rsvpForm.companionName}
-                                onChange={e => setRsvpForm({ ...rsvpForm, companionName: e.target.value })}
-                                placeholder="Nome de quem vai com você"
-                            />
-                        </div>
+                        <div className="space-y-4 pt-2">
+                            <h3 className="text-sm font-medium text-gray-900">Acompanhantes (sem contar você)</h3>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Levará filhos?</label>
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="hasChildren"
-                                        checked={rsvpForm.hasChildren === true}
-                                        onChange={() => setRsvpForm({ ...rsvpForm, hasChildren: true })}
-                                        className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                    />
-                                    <span className="text-sm">Sim</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="hasChildren"
-                                        checked={rsvpForm.hasChildren === false}
-                                        onChange={() => setRsvpForm({ ...rsvpForm, hasChildren: false })}
-                                        className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                    />
-                                    <span className="text-sm">Não</span>
-                                </label>
+                            {/* Adults Counter */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Adultos</span>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, adultsCount: Math.max(0, prev.adultsCount - 1) }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="w-8 text-center font-medium">{rsvpForm.adultsCount}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, adultsCount: prev.adultsCount + 1 }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Older Children Counter */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Crianças maiores</span>
+                                    <span className="text-xs text-gray-500">De 6 a 10 anos</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, childrenCount: Math.max(0, prev.childrenCount - 1) }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="w-8 text-center font-medium">{rsvpForm.childrenCount}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, childrenCount: prev.childrenCount + 1 }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Babies Counter */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Crianças pequenas</span>
+                                    <span className="text-xs text-gray-500">De 0 a 5 anos</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, babiesCount: Math.max(0, prev.babiesCount - 1) }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="w-8 text-center font-medium">{rsvpForm.babiesCount}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRsvpForm(prev => ({ ...prev, babiesCount: prev.babiesCount + 1 }))}
+                                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-95 transition-all"
+                                    >
+                                        +
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

@@ -38,8 +38,9 @@ type Attendance = {
     guestContact: string | null;
     status: string;
     message: string | null;
-    companionName: string | null;
-    hasChildren: boolean;
+    adultsCount: number;
+    childrenCount: number;
+    babiesCount: number;
     createdAt: Date;
 };
 
@@ -354,7 +355,9 @@ export function DashboardClient({ list }: DashboardClientProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
                             <span className="text-green-600 text-sm font-bold uppercase">Confirmados</span>
-                            <p className="text-3xl font-bold text-green-700 mt-1">{list.attendances.filter(a => a.status === 'yes').length}</p>
+                            <p className="text-3xl font-bold text-green-700 mt-1">
+                                {list.attendances.filter(a => a.status === 'yes').reduce((acc, curr) => acc + 1 + curr.adultsCount + curr.childrenCount + curr.babiesCount, 0)}
+                            </p>
                         </div>
                         <div className="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
                             <span className="text-yellow-600 text-sm font-bold uppercase">Em Dúvida</span>
@@ -374,8 +377,8 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                         <tr>
                                             <th className="px-6 py-4">Nome</th>
                                             <th className="px-6 py-4">Status</th>
-                                            <th className="px-6 py-4">Acompanhante</th>
-                                            <th className="px-6 py-4 text-center">Filhos?</th>
+                                            <th className="px-6 py-4">Total</th>
+                                            <th className="px-6 py-4">Detalhamento</th>
                                             <th className="px-6 py-4">Mensagem</th>
                                             <th className="px-6 py-4">Contato</th>
                                             <th className="px-6 py-4">Data</th>
@@ -392,13 +395,16 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                                         {att.status === 'yes' ? 'Vou' : att.status === 'no' ? 'Não vou' : 'Talvez'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4">{att.companionName || "-"}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    {att.hasChildren ? (
-                                                        <span className="text-pink-600 font-bold">Sim</span>
-                                                    ) : (
-                                                        <span className="text-gray-400">Não</span>
-                                                    )}
+                                                <td className="px-6 py-4 font-bold">
+                                                    {1 + att.adultsCount + att.childrenCount + att.babiesCount}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs">
+                                                    <div className="flex flex-col gap-1">
+                                                        {att.adultsCount > 0 && <span className="text-gray-600">+ {att.adultsCount} Adultos</span>}
+                                                        {att.childrenCount > 0 && <span className="text-blue-600">+ {att.childrenCount} Crianças (6-10)</span>}
+                                                        {att.babiesCount > 0 && <span className="text-pink-600">+ {att.babiesCount} Bebês (0-5)</span>}
+                                                        {att.adultsCount === 0 && att.childrenCount === 0 && att.babiesCount === 0 && <span className="text-gray-400">Só o titular</span>}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 italic">{att.message || "-"}</td>
                                                 <td className="px-6 py-4">{att.guestContact || "-"}</td>

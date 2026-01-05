@@ -385,8 +385,9 @@ export async function submitRSVP(listId: string, data: {
     guestContact?: string;
     status: string;
     message?: string;
-    companionName?: string;
-    hasChildren?: boolean;
+    adultsCount?: number;
+    childrenCount?: number;
+    babiesCount?: number;
 }) {
     try {
         await (prisma as any).attendance.create({

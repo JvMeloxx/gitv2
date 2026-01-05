@@ -93,8 +93,12 @@ model Attendance {
   guestContact String?
   status       String
   message      String?
-  companionName String?
-  hasChildren  Boolean  @default(false)
+  adultsCount   Int      @default(0)
+  childrenCount Int      @default(0) // 6-10 years
+  babiesCount   Int      @default(0) // 0-5 years
+  companionName String?  // Optional: keep for backwards compatibility or single name if needed, but UI will focus on counts. 
+  // User asked to replace the "way we did", so better to be clean.
+  // Actually, keeping guestName is enough. The counters replace the extras.
   createdAt    DateTime @default(now())
   list         GiftList @relation(fields: [listId], references: [id], onDelete: Cascade)
 }
