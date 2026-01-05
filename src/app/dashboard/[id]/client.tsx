@@ -495,13 +495,13 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 </div>
 
                                 <div className="flex items-center gap-3 flex-1 justify-end">
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-lg">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
                                         {financeForm.quotaValues.map((val, idx) => (
-                                            <div key={idx} className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">R$</span>
+                                            <div key={idx} className="relative group">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold group-focus-within:text-blue-500 transition-colors">R$</span>
                                                 <input
                                                     type="number"
-                                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl py-3 pl-8 pr-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-4 pl-10 pr-4 text-lg font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
                                                     value={val}
                                                     onChange={(e) => {
                                                         const newValues = [...financeForm.quotaValues];
@@ -514,7 +514,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                     </div>
                                     <button
                                         onClick={() => updateListFinance(list.id, financeForm)}
-                                        className="h-12 px-6 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                                        className="h-14 px-8 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 hover:shadow-blue-300 transform hover:-translate-y-0.5"
                                     >
                                         Salvar
                                     </button>
