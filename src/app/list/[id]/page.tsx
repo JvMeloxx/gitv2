@@ -39,5 +39,5 @@ export default async function GuestList({ params }: { params: Promise<{ id: stri
         notFound();
     }
 
-    return <GuestListClient list={list} />;
+    return <GuestListClient list={list as any} />;
 }

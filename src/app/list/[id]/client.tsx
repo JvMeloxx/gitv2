@@ -41,7 +41,7 @@ type GuestListClientProps = {
         theme: string;
         backgroundImageUrl: string | null;
         isCashEnabled: boolean;
-        gifts: GiftWithSelection[];
+        gifts: any[];
     };
 };
 
