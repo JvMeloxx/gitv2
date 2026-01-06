@@ -36,6 +36,7 @@ type GuestListClientProps = {
         title: string;
         organizerName: string;
         eventDate: string;
+        eventTime: string | null;
         location: string | null;
         coverImageUrl: string | null;
         theme: string;
@@ -256,7 +257,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     </div>
                     <h1 className="text-4xl font-extrabold tracking-tight" style={{ color: theme.text }}>{list.title}</h1>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-80" style={{ color: theme.text }}>
-                        <span className="flex items-center gap-2 font-medium"><Calendar className="w-4 h-4" /> {list.eventDate}</span>
+                        <span className="flex items-center gap-2 font-medium"><Calendar className="w-4 h-4" /> {list.eventDate} {list.eventTime && `às ${list.eventTime}`}</span>
                         {list.location && <span className="flex items-center gap-2 font-medium"><MapPin className="w-4 h-4" /> {list.location}</span>}
                     </div>
                     <p className="text-lg max-w-2xl mx-auto opacity-70" style={{ color: theme.text }}>
@@ -276,18 +277,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 space-y-6 animate-in fade-in duration-700">
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <Input
-                                    placeholder="Buscar presente..."
-                                    className="pl-10 h-12 bg-white/50 border-gray-100 rounded-xl"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                {searchQuery && (
-                                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2">
-                                        <X className="w-4 h-4 text-gray-400" />
-                                    </button>
-                                )}
+                                {/* Search Removed as per request */}
                             </div>
                             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
                                 {priceRanges.map((range) => (

@@ -14,6 +14,7 @@ export default async function GuestList({ params }: { params: Promise<{ id: stri
             title: true,
             organizerName: true,
             eventDate: true,
+            eventTime: true,
             location: true,
             coverImageUrl: true,
             theme: true,

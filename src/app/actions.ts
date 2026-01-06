@@ -74,6 +74,7 @@ export async function createGiftList(formData: {
     organizerName: string;
     title: string;
     eventDate: string;
+    eventTime?: string;
     location?: string;
     coverImageUrl?: string;
     theme?: string;
@@ -97,6 +98,7 @@ export async function createGiftList(formData: {
             organizerName,
             title,
             eventDate,
+            eventTime,
             location,
             coverImageUrl,
             theme,
@@ -130,6 +132,7 @@ export async function createGiftList(formData: {
                 organizerName,
                 eventType,
                 eventDate,
+                eventTime,
                 location,
                 organizerPhone: (formData as any).organizerPhone,
                 organizerEmail: (formData as any).organizerEmail,

@@ -20,6 +20,7 @@ export default function CreateList() {
         organizerName: "",
         title: "",
         eventDate: "",
+        eventTime: "",
         location: "",
         coverImageUrl: "",
         theme: "default",
@@ -73,6 +74,7 @@ export default function CreateList() {
                 organizerName: formData.organizerName,
                 title: formData.title || `${formData.eventType === 'wedding' ? 'Casamento de' : formData.eventType === 'birthday' ? 'Aniversário de' : 'Evento de'} ${formData.organizerName}`,
                 eventDate: formData.eventDate,
+                eventTime: formData.eventTime,
                 location: formData.location,
                 coverImageUrl: formData.coverImageUrl,
                 theme: formData.theme,
@@ -198,17 +200,31 @@ export default function CreateList() {
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="eventDate" className="text-sm font-medium text-gray-700 block">
-                                Data
-                            </label>
-                            <Input
-                                id="eventDate"
-                                type="date"
-                                value={formData.eventDate}
-                                onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                                required
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label htmlFor="eventDate" className="text-sm font-medium text-gray-700 block">
+                                    Data
+                                </label>
+                                <Input
+                                    id="eventDate"
+                                    type="date"
+                                    value={formData.eventDate}
+                                    onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="eventTime" className="text-sm font-medium text-gray-700 block">
+                                    Horário
+                                </label>
+                                <Input
+                                    id="eventTime"
+                                    type="time"
+                                    value={formData.eventTime}
+                                    onChange={(e) => setFormData({ ...formData, eventTime: e.target.value })}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

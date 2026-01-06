@@ -23,6 +23,7 @@ model GiftList {
   organizerName String
   eventType     String
   eventDate     String
+  eventTime     String?  // New field for event time
   location      String?
   organizerPhone String?
   organizerEmail String?

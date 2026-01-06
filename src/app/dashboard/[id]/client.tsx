@@ -52,6 +52,7 @@ type DashboardClientProps = {
         title: string;
         organizerName: string;
         eventDate: string;
+        eventTime: string | null;
         location: string | null;
         coverImageUrl: string | null;
         isCashEnabled: boolean;
@@ -222,7 +223,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                         </div>
                         <h1 className="text-3xl font-bold text-gray-900">{list.title}</h1>
                         <p className="text-gray-500 mt-1">
-                            {list.eventDate} • {list.location} • {fulfilledCount} / {list.gifts.length} itens conquistados
+                            {list.eventDate} {list.eventTime && `às ${list.eventTime}`} • {list.location} • {fulfilledCount} / {list.gifts.length} itens conquistados
                         </p>
                     </div>
                 </div>
