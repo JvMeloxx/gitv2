@@ -54,9 +54,9 @@ export async function loginUser(email: string, password: string) {
         console.log("DEBUG: loginUser started", { email });
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user || !(await verifyPassword(password, user.passwordHash))) {
+        if (!user || !user.passwordHash || !(await verifyPassword(password, user.passwordHash))) {
             console.log("DEBUG: Invalid credentials", { email });
-            return { error: "Credenciais inválidas." };
+            return { error: "Credenciais inválidas. Se você criou conta com Google, use o botão do Google." };
         }
 
         console.log("DEBUG: loginUser success, starting session", { userId: user.id });
