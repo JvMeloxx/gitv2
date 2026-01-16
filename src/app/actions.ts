@@ -77,6 +77,13 @@ export async function logoutUser() {
 
 // --- List Actions ---
 
+import { DEFAULT_GIFTS } from "@/lib/default-gifts";
+import { generateShopeeLink } from "@/lib/shopee";
+
+// ... existing imports ...
+
+// --- List Actions ---
+
 export async function createGiftList(formData: {
     eventType: EventType;
     organizerName: string;
@@ -95,6 +102,7 @@ export async function createGiftList(formData: {
         description?: string;
         quantityNeeded: number;
         imageUrl?: string;
+        buyLink?: string;
     }[];
 }) {
     try {
@@ -116,10 +124,10 @@ export async function createGiftList(formData: {
             selectedGifts
         } = formData;
 
-        // Use selected gifts if provided, otherwise fallback to template logic or empty
+        // Start with provided gifts or templates
         let initialGiftsData: any[] = [];
         if (selectedGifts && selectedGifts.length > 0) {
-            initialGiftsData = selectedGifts;
+            initialGiftsData = [...selectedGifts];
         } else if (eventType !== 'other') {
             const template = GIFT_TEMPLATES[eventType] || GIFT_TEMPLATES.other;
             initialGiftsData = template.items.map(item => ({
@@ -130,6 +138,15 @@ export async function createGiftList(formData: {
                 imageUrl: item.imageUrl,
             }));
         }
+
+        // Add Default Gifts (Shopee Affiliate Items)
+        // We append them to ensure they appear.
+        const defaultGiftsWithQuantity = DEFAULT_GIFTS.map(gift => ({
+            ...gift,
+            quantityNeeded: 1, // Default quantity
+        }));
+
+        initialGiftsData = [...initialGiftsData, ...defaultGiftsWithQuantity];
 
         const slug = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${nanoid(4)}`;
 
@@ -169,11 +186,22 @@ export async function addGift(listId: string, data: {
     priceEstimate?: number;
     imageUrl?: string;
     description?: string;
+    buyLink?: string;
 }) {
+    let finalBuyLink = data.buyLink;
+
+    if (finalBuyLink) {
+        const shopeeLink = await generateShopeeLink(finalBuyLink);
+        if (shopeeLink) {
+            finalBuyLink = shopeeLink;
+        }
+    }
+
     await prisma.gift.create({
         data: {
             listId,
-            ...data
+            ...data,
+            buyLink: finalBuyLink
         }
     });
     revalidatePath(`/dashboard/${listId}`);
@@ -186,10 +214,23 @@ export async function updateGift(giftId: string, data: {
     priceEstimate?: number;
     imageUrl?: string;
     description?: string;
+    buyLink?: string;
 }) {
+    let finalBuyLink = data.buyLink;
+
+    if (finalBuyLink) {
+        const shopeeLink = await generateShopeeLink(finalBuyLink);
+        if (shopeeLink) {
+            finalBuyLink = shopeeLink;
+        }
+    }
+
     const gift = await prisma.gift.update({
         where: { id: giftId },
-        data
+        data: {
+            ...data,
+            buyLink: finalBuyLink
+        }
     });
     revalidatePath(`/dashboard/${gift.listId}`);
 }
