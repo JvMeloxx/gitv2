@@ -58,7 +58,6 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [mySelectionIds, setMySelectionIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
-    const [priceFilter, setPriceFilter] = useState("all");
     const searchParams = useSearchParams();
     const paymentStatus = searchParams.get("payment");
 
@@ -211,21 +210,8 @@ export function GuestListClient({ list }: GuestListClientProps) {
         const matchesSearch = gift.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = activeCategory === "all" || gift.category === activeCategory;
 
-        let matchesPrice = true;
-        const price = gift.priceEstimate || 0;
-        if (priceFilter === "under100") matchesPrice = price < 100;
-        else if (priceFilter === "100-500") matchesPrice = price >= 100 && price <= 500;
-        else if (priceFilter === "over500") matchesPrice = price > 500;
-
-        return matchesSearch && matchesCategory && matchesPrice;
+        return matchesSearch && matchesCategory;
     });
-
-    const priceRanges = [
-        { label: "Qualquer preço", value: "all" },
-        { label: "Até R$ 100", value: "under100" },
-        { label: "R$ 100 - R$ 500", value: "100-500" },
-        { label: "Acima de R$ 500", value: "over500" },
-    ];
 
     return (
         <div className="min-h-screen relative transition-colors duration-500" style={{ backgroundColor: theme.background }}>
@@ -275,25 +261,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
                     {/* Filters Section */}
                     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 space-y-6 animate-in fade-in duration-700">
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <div className="relative flex-1">
-                                {/* Search Removed as per request */}
-                            </div>
-                            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-                                {priceRanges.map((range) => (
-                                    <button
-                                        key={range.value}
-                                        onClick={() => setPriceFilter(range.value)}
-                                        className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all border ${priceFilter === range.value
-                                            ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-                                            : 'bg-white text-gray-600 border-gray-100 hover:border-gray-300'
-                                            }`}
-                                    >
-                                        {range.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+
 
                         <div className="flex flex-wrap gap-2">
                             <div className="flex items-center gap-2 mr-2 text-gray-500 text-sm font-medium">
@@ -407,7 +375,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                         <div className="col-span-full py-20 text-center bg-white/30 backdrop-blur-sm rounded-3xl border-2 border-dashed border-white/50">
                             <p className="text-gray-500 text-lg">Nenhum presente encontrado com esses filtros.</p>
                             <button
-                                onClick={() => { setSearchQuery(""); setActiveCategory("all"); setPriceFilter("all"); }}
+                                onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}
                                 className="mt-4 text-pink-500 font-bold hover:underline"
                             >
                                 Limpar filtros

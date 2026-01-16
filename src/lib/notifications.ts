@@ -95,3 +95,67 @@ export async function sendGiftSelectionSMS({
         console.error("DEBUG [SMS]: Error via Twilio:", error);
     }
 }
+
+export async function sendRSVPEmail({
+    to,
+    organizerName,
+    guestName,
+    listTitle,
+    status,
+    totalGuests,
+    message
+}: {
+    to: string;
+    organizerName: string;
+    guestName: string;
+    listTitle: string;
+    status: string;
+    totalGuests: number;
+    message?: string;
+}) {
+    // If no API key, skip
+    if (!process.env.RESEND_API_KEY) return;
+
+    try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const statusText = status === 'yes' ? 'Sim, eu vou!' : status === 'maybe' ? 'Talvez' : 'Não poderei ir';
+        const color = status === 'yes' ? '#16a34a' : status === 'maybe' ? '#ca8a04' : '#dc2626';
+
+        await resend.emails.send({
+            from: 'Gifts2 <onboarding@resend.dev>',
+            to,
+            subject: `💌 Novo RSVP em "${listTitle}": ${guestName}`,
+            html: `
+                <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px;">
+                    <h2 style="color: #374151;">Oi, ${organizerName}!</h2>
+                    <p style="font-size: 16px;">
+                        <strong>${guestName}</strong> acabou de responder ao convite da lista <strong>"${listTitle}"</strong>.
+                    </p>
+                    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${color};">
+                        <p style="margin: 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold;">Resposta</p>
+                        <p style="margin: 4px 0 0 0; font-size: 20px; font-weight: bold; color: ${color};">${statusText}</p>
+                        
+                        ${totalGuests > 0 ? `
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0; font-size: 14px; color: #6b7280;">Total de Pessoas (neste grupo):</p>
+                            <p style="margin: 4px 0 0 0; font-size: 18px; font-weight: bold;">${totalGuests}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    ${message ? `
+                    <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; color: #1e40af; font-style: italic;">
+                        "${message}"
+                    </div>
+                    ` : ''}
+
+                    <div style="margin-top: 24px; text-align: center;">
+                        <a href="https://gifts2.vercel.app/dashboard" style="background-color: #111827; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">Ver Lista de Presença</a>
+                    </div>
+                </div>
+            `,
+        });
+    } catch (error) {
+        console.error("DEBUG [Email]: Error sending RSVP email:", error);
+    }
+}

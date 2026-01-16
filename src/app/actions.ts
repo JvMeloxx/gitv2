@@ -11,6 +11,14 @@ import { getSession, login, logout } from "@/lib/auth";
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 const PLATFORM_FEE_PERCENT = 0.05; // 5% fee
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+async function isAdmin() {
+    const session = await getSession();
+    if (!session || !session.userId) return false;
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    return user?.email === ADMIN_EMAIL;
+}
 
 // --- Auth Actions ---
 
@@ -399,6 +407,40 @@ export async function submitRSVP(listId: string, data: {
                 ...data
             }
         });
+
+        // Send Notification
+        try {
+            const list = await (prisma as any).giftList.findUnique({
+                where: { id: listId },
+                include: { user: true }
+            });
+
+            const organizerEmail = list?.organizerEmail || list?.user?.email;
+
+            if (organizerEmail) {
+                const { sendRSVPEmail } = await import("@/lib/notifications");
+                const totalGuests = (data.adultsCount || 0) + (data.childrenCount || 0) + (data.babiesCount || 0) + 1; // +1 for the guest themselves if implied, but usually "guestName" is one of the adults? 
+                // In our form logic: "Adults in group". Often includes the filler.
+                // Let's assume passed counts are total. 
+                // Actually, the new form has "Adultos", "Crianças". 
+                // Let's just sum them up. 
+                // Wait, if adultsCount is 0, is it just the guestName? 
+                // User enters "Adults count" directly. 
+
+                await sendRSVPEmail({
+                    to: organizerEmail,
+                    organizerName: list.organizerName,
+                    guestName: data.guestName,
+                    listTitle: list.title,
+                    status: data.status,
+                    totalGuests: (data.adultsCount || 0) + (data.childrenCount || 0) + (data.babiesCount || 0),
+                    message: data.message
+                });
+            }
+        } catch (e) {
+            console.error("Error sending RSVP notification", e);
+        }
+
         revalidatePath(`/list/${listId}`);
         revalidatePath(`/dashboard/${listId}`);
         return { success: true };
@@ -430,5 +472,52 @@ export async function cancelSelection(selectionId: string) {
     } catch (error) {
         console.error("cancelSelection error:", error);
         return { error: "Erro ao remover seleção." };
+    }
+}
+
+// --- Admin Actions ---
+
+export async function approveWithdrawal(requestId: string) {
+    if (!(await isAdmin())) return { error: "Unauthorized" };
+
+    try {
+        const request = await (prisma as any).withdrawalRequest.update({
+            where: { id: requestId },
+            data: { status: "COMPLETED" }
+        });
+
+        // Decrement balance only on approval to keep funds "available" until actually paid out?
+        // Or should we have decremented on request? Logic varies. 
+        // Let's assume on approval for now as per plan.
+        const list = await (prisma as any).giftList.update({
+            where: { id: request.listId },
+            data: {
+                balance: { decrement: request.amount }
+            }
+        });
+
+        revalidatePath(`/dashboard/${request.listId}`);
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("approveWithdrawal error:", error);
+        return { error: "Erro ao aprovar saque." };
+    }
+}
+
+export async function rejectWithdrawal(requestId: string) {
+    if (!(await isAdmin())) return { error: "Unauthorized" };
+
+    try {
+        const request = await (prisma as any).withdrawalRequest.update({
+            where: { id: requestId },
+            data: { status: "REJECTED" }
+        });
+
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("rejectWithdrawal error:", error);
+        return { error: "Erro ao rejeitar saque." };
     }
 }
