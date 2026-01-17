@@ -96,39 +96,55 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                 </div>
             </CardContent>
 
-            <CardFooter className="pt-2 gap-2">
-                {isOrganizer ? (
-                    <>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 gap-2 border-gray-200"
-                            onClick={() => onEdit?.(gift)}
-                        >
-                            <Edit2 className="w-4 h-4" /> Editar
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-400 hover:text-red-500 hover:bg-red-50"
-                            onClick={() => onDelete?.(gift.id)}
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </>
-                ) : (
-                    <Button
+            <CardFooter className="pt-2 flex flex-col gap-2">
+                {gift.buyLink && (
+                    <a
+                        href={gift.buyLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="w-full"
-                        style={primaryColor && !isFullySelected ? {
-                            backgroundColor: primaryColor,
-                            color: buttonTextColor || "white"
-                        } : {}}
-                        disabled={isFullySelected}
-                        onClick={() => onSelect?.(gift)}
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        {isFullySelected ? "Já Escolhido" : "Escolher Presente"}
-                    </Button>
+                        <Button variant="secondary" size="sm" className="w-full gap-2 text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Shopee_logo.svg/1200px-Shopee_logo.svg.png" alt="Shopee" className="w-4 h-4 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+                            Comprar Online
+                        </Button>
+                    </a>
                 )}
+                <div className="flex gap-2 w-full">
+                    {isOrganizer ? (
+                        <>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 gap-2 border-gray-200"
+                                onClick={() => onEdit?.(gift)}
+                            >
+                                <Edit2 className="w-4 h-4" /> Editar
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-400 hover:text-red-500 hover:bg-red-50"
+                                onClick={() => onDelete?.(gift.id)}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            className="w-full"
+                            style={primaryColor && !isFullySelected ? {
+                                backgroundColor: primaryColor,
+                                color: buttonTextColor || "white"
+                            } : {}}
+                            disabled={isFullySelected}
+                            onClick={() => onSelect?.(gift)}
+                        >
+                            {isFullySelected ? "Já Escolhido" : "Escolher Presente"}
+                        </Button>
+                    )}
+                </div>
             </CardFooter>
         </Card>
     );
