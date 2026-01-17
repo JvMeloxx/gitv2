@@ -96,6 +96,7 @@ export async function createGiftList(formData: {
     backgroundImageUrl?: string;
     organizerPhone?: string;
     organizerEmail?: string;
+    isCashEnabled?: boolean;
     selectedGifts?: {
         name: string;
         category: string;
@@ -121,6 +122,7 @@ export async function createGiftList(formData: {
             backgroundImageUrl,
             organizerPhone,
             organizerEmail,
+            isCashEnabled,
             selectedGifts
         } = formData;
 
@@ -165,6 +167,7 @@ export async function createGiftList(formData: {
                 theme: theme || "default",
                 backgroundImageUrl,
                 userId, // Connect to user if authenticated
+                isCashEnabled: !!isCashEnabled,
                 gifts: {
                     create: initialGiftsData
                 }

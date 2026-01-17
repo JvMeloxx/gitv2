@@ -7,7 +7,7 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createGiftList } from "@/app/actions";
 import { EventType } from "@/lib/types";
-import { Camera, Image as ImageIcon, CheckCircle2, Circle } from "lucide-react";
+import { Camera, Image as ImageIcon, CheckCircle2, Circle, Wallet } from "lucide-react";
 import { resizeImage } from "@/lib/images";
 import { GIFT_TEMPLATES } from "@/lib/templates";
 import { useEffect } from "react";
@@ -27,6 +27,7 @@ export default function CreateList() {
         backgroundImageUrl: "",
         organizerPhone: "",
         organizerEmail: "",
+        isCashEnabled: false,
     });
 
     const [selectedTemplateItems, setSelectedTemplateItems] = useState<string[]>([]);
@@ -81,6 +82,7 @@ export default function CreateList() {
                 backgroundImageUrl: formData.backgroundImageUrl,
                 organizerPhone: formData.organizerPhone,
                 organizerEmail: formData.organizerEmail,
+                isCashEnabled: formData.isCashEnabled,
                 selectedGifts: GIFT_TEMPLATES[formData.eventType]?.items
                     .filter(i => selectedTemplateItems.includes(i.name))
                     .map(i => ({
@@ -128,52 +130,29 @@ export default function CreateList() {
                             </Select>
                         </div>
 
-                        {/* Template Recommendations */}
-                        {formData.eventType !== 'other' && GIFT_TEMPLATES[formData.eventType] && (
-                            <div className="space-y-4 animate-in slide-in-from-top-4 duration-500">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-bold text-gray-900">
-                                        Sugestões Mágicas ✨
-                                    </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const all = GIFT_TEMPLATES[formData.eventType].items.map(i => i.name);
-                                            setSelectedTemplateItems(selectedTemplateItems.length === all.length ? [] : all);
-                                        }}
-                                        className="text-xs text-pink-500 font-medium hover:underline"
-                                    >
-                                        {selectedTemplateItems.length === GIFT_TEMPLATES[formData.eventType].items.length ? "Desmarcar todos" : "Marcar todos"}
-                                    </button>
+                        {/* Cash Gifts Toggle */}
+                        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-green-200 hover:shadow-md cursor-pointer" onClick={() => setFormData({ ...formData, isCashEnabled: !formData.isCashEnabled })}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${formData.isCashEnabled ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                                        <Wallet className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-900 cursor-pointer">
+                                            Presentes em Dinheiro (PIX)
+                                        </label>
+                                        <p className="text-xs text-gray-500">
+                                            {formData.isCashEnabled
+                                                ? "Seus convidados poderão enviar valores via PIX."
+                                                : "Ative para receber presentes em valor."}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
-                                    {GIFT_TEMPLATES[formData.eventType].items.map((item) => {
-                                        const isSelected = selectedTemplateItems.includes(item.name);
-                                        return (
-                                            <button
-                                                key={item.name}
-                                                type="button"
-                                                onClick={() => toggleItem(item.name)}
-                                                className={`flex items-center gap-2 p-2 rounded-xl border text-left transition-all ${isSelected
-                                                    ? 'bg-pink-50 border-pink-200 ring-1 ring-pink-100'
-                                                    : 'bg-gray-50 border-gray-100 opacity-60 grayscale'
-                                                    }`}
-                                            >
-                                                <div className="flex-shrink-0">
-                                                    {isSelected ? <CheckCircle2 className="w-4 h-4 text-pink-500" /> : <Circle className="w-4 h-4 text-gray-300" />}
-                                                </div>
-                                                <span className={`text-xs truncate ${isSelected ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
-                                                    {item.name}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${formData.isCashEnabled ? "bg-green-500" : "bg-gray-200"}`}>
+                                    <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${formData.isCashEnabled ? "translate-x-6" : "translate-x-0"}`} />
                                 </div>
-                                <p className="text-[10px] text-gray-400 italic">
-                                    Dica: Itens selecionados serão adicionados automaticamente à sua lista.
-                                </p>
                             </div>
-                        )}
+                        </div>
 
                         <div className="space-y-2">
                             <label htmlFor="organizerName" className="text-sm font-medium text-gray-700 block">
