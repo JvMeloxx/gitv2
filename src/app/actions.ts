@@ -10,7 +10,7 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { getSession, login, logout } from "@/lib/auth";
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
-const PLATFORM_FEE_PERCENT = 0.05; // 5% fee
+const PLATFORM_FEE_PERCENT = 0.03; // 3% fee
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 async function isAdmin() {
