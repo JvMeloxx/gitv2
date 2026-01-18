@@ -367,7 +367,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                             onCancelSelection={handleCancelSelection}
                             isCashEnabled={list.isCashEnabled}
                             onSelect={(g) => {
-                                setSelectedGift(gift);
+                                setSelectedGift(g as unknown as GiftWithSelection);
                                 setGuestForm(prev => ({ ...prev, quantity: 1 }));
                                 setError("");
                             }}
