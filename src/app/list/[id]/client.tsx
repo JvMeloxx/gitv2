@@ -395,18 +395,9 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <form onSubmit={handleSelectGift} className="space-y-4">
                         {list.isCashEnabled && selectedGift?.priceEstimate && (selectedGift.id.startsWith("quota-") || selectedGift.isCashGift) && (
                             <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 mb-2">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm text-blue-700">Valor do Presente:</span>
-                                    <span className="font-bold text-blue-900">R$ {selectedGift.priceEstimate.toFixed(2)}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs text-blue-600 opacity-80">
-                                    <span>Taxa de Serviço (5%):</span>
-                                    <span>R$ {(selectedGift.priceEstimate * 0.05).toFixed(2)}</span>
-                                </div>
-                                <div className="h-px bg-blue-100 my-2" />
                                 <div className="flex items-center justify-between font-extrabold text-blue-900">
                                     <span>Total a pagar:</span>
-                                    <span>R$ {(selectedGift.priceEstimate * 1.05 * guestForm.quantity).toFixed(2)}</span>
+                                    <span>R$ {(selectedGift.priceEstimate * guestForm.quantity).toFixed(2)}</span>
                                 </div>
                             </div>
                         )}

@@ -49,7 +49,7 @@ export function AdminDashboardClient({ requests }: { requests: WithdrawalRequest
                     <p className="text-4xl font-bold mt-2">R$ ---</p>
                 </div>
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 opacity-50">
-                    <h3 className="text-sm font-medium text-gray-500 uppercase">Receita (5%)</h3>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase">Receita (3%)</h3>
                     <p className="text-4xl font-bold mt-2">R$ ---</p>
                 </div>
             </div>
