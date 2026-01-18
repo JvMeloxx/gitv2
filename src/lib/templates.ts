@@ -30,14 +30,7 @@ export const GIFT_TEMPLATES: Record<EventType, GiftTemplate> = {
     housewarming: {
         name: "Housewarming",
         items: [
-            { name: "Jogo de Panelas", category: "Cozinha", quantityNeeded: 1, description: "Conjunto antiaderente", imageUrl: "https://images.unsplash.com/photo-1584946714184-2410175156a9?auto=format&fit=crop&q=80&w=400" },
-            { name: "Jogo de Facas", category: "Cozinha", quantityNeeded: 1, description: "Bloco de facas do chef", imageUrl: "https://images.unsplash.com/photo-1593618998160-e34014e67546?auto=format&fit=crop&q=80&w=400" },
-            { name: "Aspirador de Pó", category: "Limpeza", quantityNeeded: 1, description: "Aspirador vertical potente", imageUrl: "https://images.unsplash.com/photo-1520116467521-812bc7059837?auto=format&fit=crop&q=80&w=400" },
             { name: "Tapete de Boas-Vindas", category: "Decoração", quantityNeeded: 1, description: "Tapete para entrada", imageUrl: "https://images.unsplash.com/photo-1624531478546-f94d3ae14902?auto=format&fit=crop&q=80&w=400" },
-            { name: "Relógio de Parede", category: "Decoração", quantityNeeded: 1, description: "Relógio minimalista", imageUrl: "https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?auto=format&fit=crop&q=80&w=400" },
-            { name: "Vasos de Plantas", category: "Jardim", quantityNeeded: 3, description: "Vasos de cerâmica decorativos", imageUrl: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=400" },
-            { name: "Taças de Vinho", category: "Bar", quantityNeeded: 1, description: "Jogo de 6 taças de cristal", imageUrl: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=400" },
-            { name: "Maleta de Ferramentas", category: "Ferramentas", quantityNeeded: 1, description: "Kit básico de ferramentas", imageUrl: "https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?auto=format&fit=crop&q=80&w=400" },
         ]
     },
     birthday: {
