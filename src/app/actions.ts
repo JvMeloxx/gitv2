@@ -336,6 +336,7 @@ export async function selectGift(giftId: string | null, data: {
 
             selectionData.paymentStatus = "PENDING";
             selectionData.platformFee = fee;
+            selectionData.paidAmount = total * data.quantity;
 
             try {
                 const client = new MercadoPagoConfig({ accessToken: mpAccessToken });

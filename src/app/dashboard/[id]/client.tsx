@@ -27,6 +27,7 @@ type GiftWithSelection = {
         quantity: number;
         message: string | null;
         guestContact: string | null;
+        paidAmount: number | null;
     }[];
     createdAt: Date;
     updatedAt: Date;
@@ -326,6 +327,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                             <tr>
                                                 <th className="px-6 py-4">Presente</th>
                                                 <th className="px-6 py-4">Convidado</th>
+                                                <th className="px-6 py-4">Valor</th>
                                                 <th className="px-6 py-4">Qtd.</th>
                                                 <th className="px-6 py-4">Mensagem</th>
                                                 <th className="px-6 py-4">Contato</th>
@@ -337,6 +339,9 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                                     <tr key={`${gift.id}-${idx}`} className="hover:bg-gray-50/50">
                                                         <td className="px-6 py-4 font-medium text-gray-900">{gift.name}</td>
                                                         <td className="px-6 py-4">{selection.guestName}</td>
+                                                        <td className="px-6 py-4 font-bold text-green-600">
+                                                            {(selection as any).paidAmount ? `R$ ${(selection as any).paidAmount.toFixed(2)}` : "-"}
+                                                        </td>
                                                         <td className="px-6 py-4">{selection.quantity}</td>
                                                         <td className="px-6 py-4 italic">{selection.message || "-"}</td>
                                                         <td className="px-6 py-4">{selection.guestContact || "-"}</td>

@@ -81,6 +81,7 @@ model Selection {
   quantity     Int      @default(1)
   paymentStatus String  @default("PENDING") // PENDING, PAID, CANCELLED
   paymentId    String?
+  paidAmount   Float?   // Exact amount paid by guest
   platformFee  Float?
   createdAt    DateTime @default(now())
   gift         Gift?    @relation(fields: [giftId], references: [id], onDelete: Cascade)
