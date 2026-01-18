@@ -79,7 +79,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     // Form state
-    const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
+    const [giftForm, setGiftForm] = useState({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "", buyLink: "" });
     const [isUploading, setIsUploading] = useState(false);
 
     const handleGiftImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,10 +113,11 @@ export function DashboardClient({ list }: DashboardClientProps) {
             priceEstimate: Number(giftForm.priceEstimate),
             imageUrl: giftForm.imageUrl,
             description: giftForm.description,
+            buyLink: giftForm.buyLink
         });
 
         setIsAddModalOpen(false);
-        setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
+        setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "", buyLink: "" });
     };
 
     const handleUpdateGift = async (e: React.FormEvent) => {
@@ -129,10 +130,11 @@ export function DashboardClient({ list }: DashboardClientProps) {
             quantityNeeded: Number(giftForm.quantityNeeded),
             priceEstimate: Number(giftForm.priceEstimate),
             imageUrl: giftForm.imageUrl,
-            description: giftForm.description
+            description: giftForm.description,
+            buyLink: giftForm.buyLink
         });
         setEditingGift(null);
-        setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" });
+        setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "", buyLink: "" });
     };
 
     const handleUpdateFinance = async (e: React.FormEvent) => {
@@ -194,7 +196,8 @@ export function DashboardClient({ list }: DashboardClientProps) {
             quantityNeeded: gift.quantityNeeded,
             priceEstimate: gift.priceEstimate || 0,
             imageUrl: gift.imageUrl || "",
-            description: gift.description || ""
+            description: gift.description || "",
+            buyLink: gift.buyLink || ""
         });
     };
 
@@ -479,7 +482,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                     </div>
                                     <div>
                                         <p className="text-blue-200 text-xs opacity-60 leading-tight">
-                                            O valor disponível já considera a taxa de serviço de 5%.
+                                            Uma taxa administrativa de 3% será descontada no momento do saque.
                                         </p>
                                     </div>
                                 </div>
@@ -549,6 +552,11 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                         className="bg-gray-50 border-gray-100 rounded-xl h-12"
                                         max={(list as any).balance}
                                     />
+                                    {withdrawalForm.amount && !isNaN(Number(withdrawalForm.amount)) && (
+                                        <p className="text-xs text-gray-500 text-right">
+                                            Você receberá: <span className="font-bold text-indigo-600">R$ {(Number(withdrawalForm.amount) * 0.97).toFixed(2)}</span> (3% taxa)
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase">Chave PIX</label>
@@ -670,9 +678,27 @@ export function DashboardClient({ list }: DashboardClientProps) {
                         <Input value={giftForm.description} onChange={e => setGiftForm({ ...giftForm, description: e.target.value })} placeholder="Cor específica, modelo..." />
                     </div>
 
+                    {/* Shopee Link Section - Highlighted */}
+                    <div className="space-y-2 bg-orange-50 p-4 rounded-xl border border-orange-200">
+                        <label className="text-sm font-bold text-orange-800 flex items-center gap-2">
+                            <span className="text-lg">🛍️</span>
+                            Adicionar URL da Shopee
+                            <span className="text-[10px] bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full">Recomendado</span>
+                        </label>
+                        <Input
+                            value={giftForm.buyLink}
+                            onChange={e => setGiftForm({ ...giftForm, buyLink: e.target.value })}
+                            placeholder="Cole o link do produto Shopee aqui..."
+                            className="bg-white border-orange-200 focus:ring-orange-500"
+                        />
+                        <p className="text-xs text-orange-700">
+                            ✨ A imagem do produto será adicionada automaticamente!
+                        </p>
+                    </div>
+
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Imagem do Presente</label>
-                        <div className="relative flex flex-col items-center gap-4 p-6 border-2 border-dashed border-pink-100 rounded-2xl bg-pink-50/30 group hover:border-pink-300 transition-colors">
+                        <label className="text-sm font-medium text-gray-500">Ou adicione uma foto manualmente</label>
+                        <div className="relative flex flex-col items-center gap-4 p-4 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 group hover:border-pink-300 transition-colors">
                             {giftForm.imageUrl ? (
                                 <div className="relative w-32 h-32 rounded-xl overflow-hidden shadow-md">
                                     <img src={giftForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -686,11 +712,10 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 </div>
                             ) : (
                                 <div className="text-center group-hover:scale-105 transition-transform duration-300">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                                        {isUploading ? <Loader2 className="w-8 h-8 text-pink-500 animate-spin" /> : <Camera className="w-8 h-8 text-pink-500" />}
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
+                                        {isUploading ? <Loader2 className="w-6 h-6 text-pink-500 animate-spin" /> : <Camera className="w-6 h-6 text-pink-500" />}
                                     </div>
-                                    <p className="text-xs text-gray-500 font-medium">Clique para subir uma foto</p>
-                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ou JPEG</p>
+                                    <p className="text-xs text-gray-500 font-medium">Clique para subir nova foto</p>
                                 </div>
                             )}
                             <input
@@ -699,15 +724,6 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 onChange={handleGiftImageChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 disabled={isUploading}
-                            />
-                        </div>
-                        <div className="pt-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold px-1 mb-1">Ou cole uma URL da imagem</p>
-                            <Input
-                                value={giftForm.imageUrl}
-                                onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })}
-                                placeholder="https://..."
-                                className="text-xs h-9"
                             />
                         </div>
                     </div>
@@ -721,7 +737,7 @@ export function DashboardClient({ list }: DashboardClientProps) {
             {/* Edit Modal */}
             <Modal
                 isOpen={!!editingGift}
-                onClose={() => { setEditingGift(null); setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "" }); }}
+                onClose={() => { setEditingGift(null); setGiftForm({ name: "", category: "", quantityNeeded: 1, priceEstimate: 0, imageUrl: "", description: "", buyLink: "" }); }}
                 title="Editar Presente"
                 description="Atualize os detalhes deste presente."
             >
@@ -747,9 +763,26 @@ export function DashboardClient({ list }: DashboardClientProps) {
                         <Input value={giftForm.description} onChange={e => setGiftForm({ ...giftForm, description: e.target.value })} />
                     </div>
 
+                    {/* Shopee Link Section - Highlighted */}
+                    <div className="space-y-2 bg-orange-50 p-4 rounded-xl border border-orange-200">
+                        <label className="text-sm font-bold text-orange-800 flex items-center gap-2">
+                            <span className="text-lg">🛍️</span>
+                            Atualizar URL da Shopee
+                        </label>
+                        <Input
+                            value={giftForm.buyLink}
+                            onChange={e => setGiftForm({ ...giftForm, buyLink: e.target.value })}
+                            placeholder="Cole o link do produto Shopee aqui..."
+                            className="bg-white border-orange-200 focus:ring-orange-500"
+                        />
+                        <p className="text-xs text-orange-700">
+                            ✨ A imagem será atualizada se você mudar o link!
+                        </p>
+                    </div>
+
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Imagem do Presente</label>
-                        <div className="relative flex flex-col items-center gap-4 p-6 border-2 border-dashed border-pink-100 rounded-2xl bg-pink-50/30 group hover:border-pink-300 transition-colors">
+                        <label className="text-sm font-medium text-gray-500">Ou altere a foto manualmente</label>
+                        <div className="relative flex flex-col items-center gap-4 p-4 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 group hover:border-pink-300 transition-colors">
                             {giftForm.imageUrl ? (
                                 <div className="relative w-32 h-32 rounded-xl overflow-hidden shadow-md">
                                     <img src={giftForm.imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -763,11 +796,10 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 </div>
                             ) : (
                                 <div className="text-center group-hover:scale-105 transition-transform duration-300">
-                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                                        {isUploading ? <Loader2 className="w-8 h-8 text-pink-500 animate-spin" /> : <Camera className="w-8 h-8 text-pink-500" />}
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
+                                        {isUploading ? <Loader2 className="w-6 h-6 text-pink-500 animate-spin" /> : <Camera className="w-6 h-6 text-pink-500" />}
                                     </div>
-                                    <p className="text-xs text-gray-500 font-medium">Clique para subir uma foto</p>
-                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ou JPEG</p>
+                                    <p className="text-xs text-gray-500 font-medium">Clique para subir nova foto</p>
                                 </div>
                             )}
                             <input
@@ -776,15 +808,6 @@ export function DashboardClient({ list }: DashboardClientProps) {
                                 onChange={handleGiftImageChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 disabled={isUploading}
-                            />
-                        </div>
-                        <div className="pt-2">
-                            <p className="text-[10px] text-gray-400 uppercase font-bold px-1 mb-1">Ou cole uma URL da imagem</p>
-                            <Input
-                                value={giftForm.imageUrl}
-                                onChange={e => setGiftForm({ ...giftForm, imageUrl: e.target.value })}
-                                placeholder="https://..."
-                                className="text-xs h-9"
                             />
                         </div>
                     </div>

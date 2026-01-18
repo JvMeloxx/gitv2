@@ -111,6 +111,20 @@ export function GiftCard({ gift, isOrganizer = false, onEdit, onDelete, onSelect
                         </Button>
                     </a>
                 )}
+                {!isOrganizer && isCashEnabled && gift.priceEstimate && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2 text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onSelect?.({ ...gift, isCashGift: true } as any); // Hack to pass signal, or add new prop
+                        }}
+                    >
+                        <Wallet className="w-4 h-4" />
+                        Presentear em Dinheiro
+                    </Button>
+                )}
                 <div className="flex gap-2 w-full">
                     {isOrganizer ? (
                         <>

@@ -88,8 +88,11 @@ export function AdminDashboardClient({ requests }: { requests: WithdrawalRequest
                                     <td className="p-4 font-mono text-xs text-gray-600">
                                         {req.pixKey || req.bankDetails || "N/A"}
                                     </td>
-                                    <td className="p-4 font-bold text-green-600">
-                                        R$ {req.amount.toFixed(2)}
+                                    <td className="p-4">
+                                        <div className="font-bold text-gray-900">R$ {req.amount.toFixed(2)}</div>
+                                        <div className="text-xs text-green-600 font-bold mt-1">
+                                            Liquid: R$ {(req.amount * 0.97).toFixed(2)}
+                                        </div>
                                     </td>
                                     <td className="p-4 text-right space-x-2">
                                         <Button

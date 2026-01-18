@@ -78,11 +78,7 @@ export async function logoutUser() {
 // --- List Actions ---
 
 import { DEFAULT_GIFTS } from "@/lib/default-gifts";
-import { generateShopeeLink } from "@/lib/shopee";
-
-// ... existing imports ...
-
-// --- List Actions ---
+import { generateShopeeLink, getShopeeProductDetails } from "@/lib/shopee";
 
 export async function createGiftList(formData: {
     eventType: EventType;
@@ -192,8 +188,26 @@ export async function addGift(listId: string, data: {
     buyLink?: string;
 }) {
     let finalBuyLink = data.buyLink;
+    let finalImageUrl = data.imageUrl;
 
     if (finalBuyLink) {
+        if (finalBuyLink.includes("shopee")) {
+            try {
+                const { imageUrl: fetchedImage, price: fetchedPrice } = await getShopeeProductDetails(finalBuyLink);
+                if (fetchedImage) {
+                    finalImageUrl = fetchedImage;
+                }
+                if (fetchedPrice) {
+                    // Update priceEstimate if not provided manually
+                    if (!data.priceEstimate) {
+                        data.priceEstimate = fetchedPrice;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to auto-fetch Shopee image", e);
+            }
+        }
+
         const shopeeLink = await generateShopeeLink(finalBuyLink);
         if (shopeeLink) {
             finalBuyLink = shopeeLink;
@@ -204,6 +218,7 @@ export async function addGift(listId: string, data: {
         data: {
             listId,
             ...data,
+            imageUrl: finalImageUrl,
             buyLink: finalBuyLink
         }
     });
@@ -220,8 +235,26 @@ export async function updateGift(giftId: string, data: {
     buyLink?: string;
 }) {
     let finalBuyLink = data.buyLink;
+    let finalImageUrl = data.imageUrl;
 
     if (finalBuyLink) {
+        if (finalBuyLink.includes("shopee")) {
+            try {
+                const { imageUrl: fetchedImage, price: fetchedPrice } = await getShopeeProductDetails(finalBuyLink);
+                if (fetchedImage) {
+                    finalImageUrl = fetchedImage;
+                }
+                if (fetchedPrice) {
+                    // Update priceEstimate if not provided manually
+                    if (!data.priceEstimate) {
+                        data.priceEstimate = fetchedPrice;
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to auto-fetch Shopee image", e);
+            }
+        }
+
         const shopeeLink = await generateShopeeLink(finalBuyLink);
         if (shopeeLink) {
             finalBuyLink = shopeeLink;
@@ -232,6 +265,7 @@ export async function updateGift(giftId: string, data: {
         where: { id: giftId },
         data: {
             ...data,
+            imageUrl: finalImageUrl,
             buyLink: finalBuyLink
         }
     });
@@ -296,8 +330,9 @@ export async function selectGift(giftId: string | null, data: {
                 return { error: "Erro de configuração do sistema: Pagamentos indisponíveis no momento." };
             }
 
-            const fee = price * PLATFORM_FEE_PERCENT;
-            const total = price + fee;
+            // Fee Refactor: Guest pays exact price. Fee is deducted on withdrawal.
+            const fee = 0;
+            const total = price;
 
             selectionData.paymentStatus = "PENDING";
             selectionData.platformFee = fee;

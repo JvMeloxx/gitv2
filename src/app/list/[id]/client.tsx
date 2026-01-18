@@ -27,6 +27,7 @@ type GiftWithSelection = {
         guestName: string;
         quantity: number;
     }[];
+    isCashGift?: boolean;
 };
 
 type GuestListClientProps = {
@@ -113,7 +114,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
                 message: guestForm.message,
                 quantity: Number(guestForm.quantity),
                 listId: list.id,
-                customAmount: selectedGift.id.startsWith("quota-") ? selectedGift.priceEstimate || 0 : undefined
+                customAmount: (selectedGift.id.startsWith("quota-") || selectedGift.isCashGift) ? selectedGift.priceEstimate || 0 : undefined
             }
         );
 
@@ -389,10 +390,10 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     isOpen={!!selectedGift}
                     onClose={() => setSelectedGift(null)}
                     title={`Presentear ${selectedGift?.name}`}
-                    description={list.isCashEnabled ? "Este presente será enviado em dinheiro para o organizador via Mercado Pago." : "Confirme seus dados para que o organizador saiba quem agradecer."}
+                    description={(list.isCashEnabled && (selectedGift?.id.startsWith("quota-") || selectedGift?.isCashGift)) ? "Este presente será enviado em dinheiro para o organizador via Mercado Pago." : "Confirme seus dados para que o organizador saiba quem agradecer."}
                 >
                     <form onSubmit={handleSelectGift} className="space-y-4">
-                        {list.isCashEnabled && selectedGift?.priceEstimate && (
+                        {list.isCashEnabled && selectedGift?.priceEstimate && (selectedGift.id.startsWith("quota-") || selectedGift.isCashGift) && (
                             <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 mb-2">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-sm text-blue-700">Valor do Presente:</span>
@@ -450,7 +451,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
 
                         <div className="pt-2">
                             <Button type="submit" disabled={loading} className="w-full text-white flex items-center justify-center gap-2" style={{ backgroundColor: theme.primary }}>
-                                {loading ? "Processando..." : (list.isCashEnabled && selectedGift?.id.startsWith("quota-")) ? (
+                                {loading ? "Processando..." : (list.isCashEnabled && (selectedGift?.id.startsWith("quota-") || selectedGift?.isCashGift)) ? (
                                     <>
                                         <CreditCard className="w-4 h-4" />
                                         Pagar com Mercado Pago
