@@ -30,7 +30,6 @@ export const GIFT_TEMPLATES: Record<EventType, GiftTemplate> = {
     housewarming: {
         name: "Housewarming",
         items: [
-            { name: "Tapete de Boas-Vindas", category: "Decoração", quantityNeeded: 1, description: "Tapete para entrada", imageUrl: "https://images.unsplash.com/photo-1624531478546-f94d3ae14902?auto=format&fit=crop&q=80&w=400" },
         ]
     },
     birthday: {
