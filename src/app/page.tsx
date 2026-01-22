@@ -1,148 +1,131 @@
 import Link from "next/link";
-import { Gift } from "lucide-react";
+import { Gift, Wallet, LayoutDashboard, QrCode, ArrowRight, CheckCircle2 } from "lucide-react";
 
-import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
-
-export default async function Home() {
-    let session = null;
-    try {
-        session = await getSession();
-    } catch (error) {
-        console.error("Home: Failed to get session", error);
-    }
-
-    if (session) {
-        redirect("/dashboard");
-    }
-
+export default function Home() {
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 lg:py-24 grid lg:grid-cols-2 gap-16 items-center">
+        <div className="min-h-screen bg-background flex flex-col font-sans text-foreground selection:bg-accent selection:text-accent-foreground">
 
-                {/* Left Column: Typography Strategy */}
-                <div className="space-y-10 animate-in fade-in slide-in-from-left-8 duration-700">
-                    <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 text-secondary-foreground text-sm font-medium border border-border/50">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                            </span>
-                            Nova Versão 3.0
-                        </div>
-                        <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-foreground leading-[0.9]">
-                            Gifts
-                            <span className="text-primary block">Inteligentes.</span>
-                        </h1>
-                        <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                            A plataforma de listas de presentes para quem valoriza design, simplicidade e liberdade. Receba em produtos ou Pix.
-                        </p>
-                    </div>
+            {/* 1. Hero Section - Editorial Style */}
+            <main className="w-full max-w-5xl mx-auto px-6 pt-32 pb-24 text-center">
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                    <span className="inline-block px-4 py-1.5 rounded-full border border-border bg-secondary/30 text-xs font-medium tracking-widest uppercase text-muted-foreground">
+                        A Nova Era das Listas de Presentes
+                    </span>
+                    <h1 className="text-5xl md:text-7xl font-serif font-medium text-foreground tracking-tight leading-[1.1]">
+                        Celebre com <span className="italic text-accent-foreground">Liberdade</span>. <br />
+                        Receba com <span className="italic text-accent-foreground">Elegância</span>.
+                    </h1>
+                    <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+                        A plataforma definitiva para casamentos e eventos exclusivos.
+                        Crie sua lista virtual, receba presentes em dinheiro (Pix) e gerencie tudo em um dashboard impecável.
+                    </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/create"
-                            className="inline-flex h-14 items-center justify-center rounded-lg bg-primary px-8 text-lg font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:scale-[1.02]"
+                            className="inline-flex h-14 items-center justify-center rounded-sm bg-primary px-10 text-lg font-medium text-primary-foreground shadow-xl transition-all hover:bg-primary/90 hover:scale-[1.01]"
                         >
-                            Criar Lista Grátis
+                            Criar Minha Lista
                         </Link>
                         <Link
                             href="/about"
-                            className="inline-flex h-14 items-center justify-center rounded-lg border-2 border-border bg-background px-8 text-lg font-medium text-foreground transition-all hover:bg-secondary/50 hover:border-primary/20"
+                            className="inline-flex h-14 items-center justify-center rounded-sm border border-input bg-background px-10 text-lg font-medium text-foreground transition-all hover:bg-secondary/40"
                         >
-                            Ver Demo
+                            Conhecer Recursos
                         </Link>
                     </div>
-
-                    {/* Trust/Tech Badges */}
-                    <div className="pt-8 border-t border-border flex gap-8 text-muted-foreground grayscale opacity-70">
-                        {/* Placeholder for simple tech-looking badges or text */}
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span className="text-sm font-mono">Pix Instantâneo</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="text-sm font-mono">Dashboard Real-time</span>
-                        </div>
-                    </div>
                 </div>
-
-                {/* Right Column: Abstract Tech Visual */}
-                <div className="relative animate-in fade-in slide-in-from-right-8 duration-1000 delay-200 hidden lg:block">
-                    {/* Decorative Abstract Shapes */}
-                    <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-                    <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"></div>
-
-                    {/* "Dashboard" Preview Card */}
-                    <div className="relative bg-card border border-border rounded-2xl shadow-2xl p-8 backdrop-blur-sm">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-blue-400 rounded-t-2xl"></div>
-
-                        {/* Mock UI Elements */}
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center pb-6 border-b border-border">
-                                <div className="space-y-1">
-                                    <div className="h-4 w-32 bg-secondary rounded animate-pulse"></div>
-                                    <div className="h-8 w-48 bg-primary/10 rounded"></div>
-                                </div>
-                                <div className="h-10 w-10 bg-secondary rounded-full"></div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-secondary/30 rounded-lg border border-border/50 space-y-2">
-                                    <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
-                                        <Gift className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div className="text-2xl font-bold">R$ 4.250</div>
-                                    <div className="text-xs text-muted-foreground">Arrecadado</div>
-                                </div>
-                                <div className="p-4 bg-secondary/30 rounded-lg border border-border/50 space-y-2">
-                                    <div className="w-8 h-8 rounded bg-emerald-500/20 flex items-center justify-center">
-                                        <div className="w-4 h-4 rounded-full bg-emerald-500"></div>
-                                    </div>
-                                    <div className="text-2xl font-bold">128</div>
-                                    <div className="text-xs text-muted-foreground">Presentes</div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 pt-2">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-secondary/50 transition-colors border border-transparent hover:border-border">
-                                        <div className="w-10 h-10 rounded bg-secondary"></div>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-3 w-3/4 bg-secondary rounded"></div>
-                                            <div className="h-2 w-1/2 bg-secondary/50 rounded"></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </main>
 
-            {/* Tech Features Grid - Replaces old "Categories" */}
-            <section className="bg-secondary/20 py-24 border-t border-border">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid md:grid-cols-3 gap-8">
+            {/* 2. Narrative Section - The Solution */}
+            <section className="bg-secondary/30 py-24 border-y border-border/50">
+                <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
+                    <h2 className="text-3xl md:text-4xl font-serif text-foreground">
+                        Por que limitar seus sonhos a uma loja física?
+                    </h2>
+                    <div className="grid md:grid-cols-2 gap-12 text-left">
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold uppercase tracking-wide text-muted-foreground">O Passado</h3>
+                            <p className="text-lg leading-relaxed text-foreground/80">
+                                Listas tradicionais prendem você a créditos em lojas específicas,
+                                com prazos de troca curtos e produtos que você talvez nem precise.
+                                É burocrático e limitado.
+                            </p>
+                        </div>
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold uppercase tracking-wide text-accent-foreground">O Gifts2</h3>
+                            <p className="text-lg leading-relaxed text-foreground/80">
+                                Receba o valor integral dos presentes via Pix.
+                                Use para a lua de mel, para reformar a casa ou investir.
+                                A escolha é 100% sua, sem taxas escondidas e com total liberdade.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. Steps Section - How it Works */}
+            <section className="py-24 max-w-6xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-4xl font-serif mb-4">Simples. Transparente. Sofisticado.</h2>
+                    <p className="text-muted-foreground">Sua jornada em três passos elegantes.</p>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-12">
+                    {[
+                        { step: "01", title: "Crie sua Página", desc: "Personalize sua lista com fotos, mensagens e os presentes dos seus sonhos em minutos." },
+                        { step: "02", title: "Compartilhe", desc: "Envie o link ou QR Code no convite. Seus convidados presenteiam de forma rápida e segura." },
+                        { step: "03", title: "Receba via Pix", desc: "O valor cai na sua conta cadastrada. Sem intermediários, sem complicações." }
+                    ].map((item, i) => (
+                        <div key={i} className="flex flex-col items-center text-center space-y-4">
+                            <span className="text-6xl font-serif text-secondary font-bold opacity-50">{item.step}</span>
+                            <h3 className="text-xl font-medium">{item.title}</h3>
+                            <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* 4. Features Grid - Detailed Info */}
+            <section className="bg-foreground text-background py-24">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {[
-                            { title: "Dashboard", desc: "Controle total dos seus presentes e convidados em tempo real.", icon: "bar-chart-2" },
-                            { title: "Pix Direto", desc: "Receba o valor dos presentes diretamente na sua conta, sem taxas escondidas.", icon: "zap" },
-                            { title: "Multi-Eventos", desc: "Gerencie Casamentos, Aniversários e Chás em um único lugar.", icon: "layers" }
-                        ].map((item, idx) => (
-                            <div key={idx} className="bg-card p-8 rounded-xl border border-border hover:border-primary/50 transition-all hover:shadow-lg group">
-                                <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">{item.title}</h3>
-                                <p className="text-muted-foreground leading-relaxed">{item.desc}</p>
+                            { title: "Pix Instantâneo", desc: "Acesso imediato aos valores recebidos. O dinheiro é seu, na hora." },
+                            { title: "Painel de Controle", desc: "Gerencie presentes, agradecimentos e mensagens em um único lugar." },
+                            { title: "RSVP Integrado", desc: "Seus convidados confirmam presença diretamente pela sua página." },
+                            { title: "Taxas Justas", desc: "Apenas uma pequena taxa administrativa. Nada de surpresas." }
+                        ].map((feature, idx) => (
+                            <div key={idx} className="p-6 border border-white/10 rounded-sm hover:bg-white/5 transition-colors group">
+                                <h3 className="text-lg font-serif mb-2 text-primary-foreground group-hover:text-amber-200 transition-colors">{feature.title}</h3>
+                                <p className="text-white/60 text-sm leading-relaxed">{feature.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            <footer className="mt-auto py-12 border-t border-border bg-background">
-                <div className="max-w-7xl mx-auto px-6 text-center text-muted-foreground text-sm">
-                    <p>© {new Date().getFullYear()} Gifts2 Platform. Engineered for Celebration.</p>
+            {/* 5. FAQ Section - Questions */}
+            <section className="py-24 max-w-3xl mx-auto px-6">
+                <h2 className="text-3xl font-serif text-center mb-12">Dúvidas Frequentes</h2>
+                <div className="space-y-6">
+                    {[
+                        { q: "É seguro receber via Pix?", a: "Sim. Utilizamos gateways de pagamento criptografados e o valor é transferido diretamente para a conta do organizador." },
+                        { q: "Posso criar listas para outros eventos?", a: "Absolutamente. O Gifts2 é perfeito para Chás de Bebê, Aniversários, Bodas e Open House." },
+                        { q: "Quanto custa?", a: "Criar a lista é 100% gratuito. Existe apenas uma pequena taxa de processamento sobre os presentes recebidos, que pode ser repassada ao convidado." }
+                    ].map((faq, idx) => (
+                        <div key={idx} className="p-6 bg-secondary/20 rounded-sm border border-border/50">
+                            <h3 className="font-medium text-lg mb-2">{faq.q}</h3>
+                            <p className="text-muted-foreground leading-relaxed">{faq.a}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <footer className="py-12 border-t border-border bg-background text-center">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-6">
+                    <Gift className="w-8 h-8 text-foreground opacity-20" />
+                    <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} Gifts2 • Elegância em cada detalhe.</p>
                 </div>
             </footer>
         </div>
