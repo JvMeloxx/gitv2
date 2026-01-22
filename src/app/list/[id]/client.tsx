@@ -59,6 +59,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
     const [mySelectionIds, setMySelectionIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
+    const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
     const searchParams = useSearchParams();
     const paymentStatus = searchParams.get("payment");
 
@@ -141,18 +142,7 @@ export function GuestListClient({ list }: GuestListClientProps) {
     };
 
     const handleSelectQuota = async (amount: number) => {
-        // We simulate selecting a "cash gift" by creating a temporary one or 
-        // using a special ID. However, the existing selectGift expects a real giftId.
-        // For simplicity, we can just suggest the user to use the existing items 
-        // OR we can implement a generic "Cash Contribution" action.
-        // User said: "criar automático presentes em dinheiro de 100 a 500 reais"
-        // This implies these should probably BE in the gifts list.
-
-        // I will implement a quick shortcut to select an existing gift that matches 
-        // the category "Dinheiro" or "Cotas" if it exists, or just open a generic modal.
-
-        // Let's stick to the user's "Automatic" request by injecting these into the filteredGifts 
-        // or having a separate section.
+        // Placeholder per previous implementation
     };
 
     const handleCancelSelection = async (selectionId: string) => {
@@ -212,6 +202,13 @@ export function GuestListClient({ list }: GuestListClientProps) {
         const matchesCategory = activeCategory === "all" || gift.category === activeCategory;
 
         return matchesSearch && matchesCategory;
+    }).sort((a, b) => {
+        if (sortBy === "price-asc") {
+            return (a.priceEstimate || 0) - (b.priceEstimate || 0);
+        } else if (sortBy === "price-desc") {
+            return (b.priceEstimate || 0) - (a.priceEstimate || 0);
+        }
+        return 0;
     });
 
     return (
@@ -245,7 +242,19 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <h1 className="text-4xl font-extrabold tracking-tight" style={{ color: theme.text }}>{list.title}</h1>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-80" style={{ color: theme.text }}>
                         <span className="flex items-center gap-2 font-medium"><Calendar className="w-4 h-4" /> {list.eventDate} {list.eventTime && `às ${list.eventTime}`}</span>
-                        {list.location && <span className="flex items-center gap-2 font-medium"><MapPin className="w-4 h-4" /> {list.location}</span>}
+                        {list.location && (
+                            <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 font-medium"><MapPin className="w-4 h-4" /> {list.location}</span>
+                                <a
+                                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(list.location)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs bg-white/50 hover:bg-white text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-pink-300 hover:text-pink-600 transition-all flex items-center gap-1 shadow-sm font-bold"
+                                >
+                                    <MapPin className="w-3 h-3" /> Como Chegar
+                                </a>
+                            </div>
+                        )}
                     </div>
                     <p className="text-lg max-w-2xl mx-auto opacity-70" style={{ color: theme.text }}>
                         Organizado por {list.organizerName}. Escolha um presente para tornar o dia deles especial!
@@ -264,22 +273,38 @@ export function GuestListClient({ list }: GuestListClientProps) {
                     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-white/50 space-y-6 animate-in fade-in duration-700">
 
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                             <div className="flex items-center gap-2 mr-2 text-gray-500 text-sm font-medium">
                                 <Filter className="w-4 h-4" /> Filtros:
                             </div>
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setActiveCategory(cat)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${activeCategory === cat
-                                        ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
-                                        : 'bg-white text-gray-500 border-gray-100 hover:border-pink-200 hover:text-pink-500'
-                                        }`}
+
+                            <div className="flex flex-wrap gap-2 flex-1">
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setActiveCategory(cat)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${activeCategory === cat
+                                            ? 'bg-pink-500 text-white border-pink-500 shadow-sm'
+                                            : 'bg-white text-gray-500 border-gray-100 hover:border-pink-200 hover:text-pink-500'
+                                            }`}
+                                    >
+                                        {cat === "all" ? "Todos" : cat}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-500">Ordenar por:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value as any)}
+                                    className="bg-white border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-pink-500 focus:border-pink-500 block p-2"
                                 >
-                                    {cat === "all" ? "Todos" : cat}
-                                </button>
-                            ))}
+                                    <option value="default">Padrão</option>
+                                    <option value="price-asc">Menor Preço</option>
+                                    <option value="price-desc">Maior Preço</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,7 @@ import { Camera, Image as ImageIcon, CheckCircle2, Circle, Wallet } from "lucide
 import { resizeImage } from "@/lib/images";
 import { GIFT_TEMPLATES } from "@/lib/templates";
 import { useEffect } from "react";
+import { LocationPicker } from "@/components/ui/location-picker";
 
 export default function CreateList() {
     const [error, setError] = useState("");
@@ -210,12 +211,13 @@ export default function CreateList() {
                             <label htmlFor="location" className="text-sm font-medium text-gray-700 block">
                                 Local (Opcional)
                             </label>
-                            <Input
-                                id="location"
-                                placeholder="ex: Rio de Janeiro"
-                                value={formData.location}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            />
+                            <div className="space-y-1">
+                                <LocationPicker
+                                    initialAddress={formData.location}
+                                    onLocationSelect={(addr) => setFormData(prev => ({ ...prev, location: addr }))}
+                                />
+                                <p className="text-[10px] text-gray-400">Procure pelo nome do local ou endereço completo.</p>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

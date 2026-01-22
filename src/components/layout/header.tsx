@@ -20,28 +20,28 @@ export async function Header() {
     }
 
     return (
-        <header className="w-full py-4 px-6 bg-white/80 backdrop-blur-md border-b border-pink-100/50 sticky top-0 z-50">
-            <div className="max-w-6xl mx-auto flex items-center justify-between">
-                <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <div className="bg-gradient-to-tr from-pink-400 to-pink-600 rounded-lg p-1.5 shadow-md">
-                        <Gift className="w-6 h-6 text-white" />
+        <header className="w-full py-4 px-6 bg-white/90 backdrop-blur-xl border-b border-border/40 sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+                    <div className="bg-primary/5 rounded-sm p-1.5 transition-colors group-hover:bg-primary/10">
+                        <Gift className="w-5 h-5 text-primary" />
                     </div>
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">
-                        Gifts<span className="text-pink-500">2</span>
+                    <span className="text-xl font-serif font-bold tracking-tight text-foreground">
+                        Gifts<span className="text-accent-foreground italic">2</span>
                     </span>
                 </Link>
                 <nav className="flex items-center gap-4">
                     {user ? (
                         <>
-                            <span className="text-sm font-medium text-gray-600 hidden sm:block">
+                            <span className="text-sm font-medium text-muted-foreground hidden sm:block">
                                 {user.name.split(" ")[0]}
                             </span>
                             <form action={logoutUser}>
-                                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-500">
+                                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                                     <LogOut className="w-4 h-4 mr-2" /> Sair
                                 </Button>
                             </form>
-                            <Button asChild size="sm" className="rounded-full px-6 shadow-md shadow-pink-200">
+                            <Button asChild size="sm" className="rounded-sm px-6 font-semibold shadow-sm">
                                 <Link href="/dashboard">Painel</Link>
                             </Button>
                         </>
@@ -49,11 +49,11 @@ export async function Header() {
                         <>
                             <Link
                                 href="/login"
-                                className="text-sm font-medium text-gray-600 hover:text-pink-600 transition-colors hidden sm:block"
+                                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block"
                             >
                                 Entrar
                             </Link>
-                            <Button asChild size="sm" className="rounded-full px-6 shadow-md shadow-pink-200">
+                            <Button asChild size="sm" className="rounded-sm px-6 font-semibold shadow-sm">
                                 <Link href="/register">Cadastrar</Link>
                             </Button>
                         </>

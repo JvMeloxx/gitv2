@@ -366,9 +366,9 @@ export async function selectGift(giftId: string | null, data: {
 
                 checkoutUrl = response.init_point;
                 selectionData.paymentId = response.id;
-            } catch (mpError) {
-                console.error("DEBUG: Mercado Pago Preference Error", mpError);
-                return { error: "Erro ao iniciar o pagamento. Tente novamente." };
+            } catch (mpError: any) {
+                console.error("DEBUG: Mercado Pago Preference Error", JSON.stringify(mpError, null, 2));
+                return { error: `Erro ao iniciar o pagamento: ${mpError.message || "Erro desconhecido"}` };
             }
         }
 
@@ -424,6 +424,39 @@ export async function selectGift(giftId: string | null, data: {
     } catch (error) {
         console.error("DEBUG: selectGift error:", error);
         return { error: "Ocorreu um erro ao confirmar o presente. Tente novamente." };
+    }
+}
+
+export async function updateListDetails(listId: string, data: {
+    eventDate: string;
+    eventTime?: string;
+    location?: string;
+}) {
+    try {
+        const session = await getSession();
+        if (!session || !session.userId) return { error: "Não autorizado." };
+
+        const list = await prisma.giftList.findUnique({ where: { id: listId } });
+        if (!list) return { error: "Lista não encontrada." };
+
+        // Ensure ownership (optional but recommended)
+        // if (list.organizerId !== session.userId) ...
+
+        await prisma.giftList.update({
+            where: { id: listId },
+            data: {
+                eventDate: data.eventDate,
+                eventTime: data.eventTime,
+                location: data.location
+            }
+        });
+
+        revalidatePath(`/dashboard/${listId}`);
+        revalidatePath(`/list/${list.slug}`);
+        return { success: true };
+    } catch (error) {
+        console.error("updateListDetails error:", error);
+        return { error: "Erro ao atualizar detalhes do evento." };
     }
 }
 

@@ -63,8 +63,36 @@ type DashboardClientProps = {
     };
 };
 
+import { LocationPicker } from "@/components/ui/location-picker";
+import QRCode from "react-qr-code";
+import { updateListDetails } from "@/app/actions";
+
+// ... type definitions same as before ... 
+
 export function DashboardClient({ list }: DashboardClientProps) {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+    // Edit Form State
+    const [editForm, setEditForm] = useState({
+        eventDate: list.eventDate,
+        eventTime: list.eventTime || "",
+        location: list.location || ""
+    });
+
+    const handleUpdateDetails = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateListDetails(list.id, editForm);
+            setIsEditModalOpen(false);
+            alert("Detalhes atualizados com sucesso!");
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao atualizar detalhes.");
+        }
+    };
+
     const [editingGift, setEditingGift] = useState<GiftWithSelection | null>(null);
     const [activeTab, setActiveTab] = useState<"gifts" | "attendances" | "mural" | "finance">("gifts");
 
@@ -233,6 +261,12 @@ export function DashboardClient({ list }: DashboardClientProps) {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                    <Button variant="outline" onClick={() => setIsEditModalOpen(true)} className="gap-2">
+                        <span className="text-lg">✏️</span> Editar
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsQrModalOpen(true)} className="gap-2">
+                        <span className="text-lg">📱</span> QR Code
+                    </Button>
                     <Button variant="outline" onClick={handleCopyLink} className="gap-2">
                         <Share2 className="w-4 h-4" /> Link
                     </Button>
@@ -823,6 +857,71 @@ export function DashboardClient({ list }: DashboardClientProps) {
                 </form>
             </Modal>
 
+            {/* Edit Details Modal */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title="Editar Detalhes do Evento"
+                description="Corrija informações do seu evento."
+            >
+                <form onSubmit={handleUpdateDetails} className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Data do Evento</label>
+                        <Input
+                            type="text"
+                            placeholder="ex: 20/12/2026"
+                            value={editForm.eventDate}
+                            onChange={e => setEditForm({ ...editForm, eventDate: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Horário</label>
+                        <Input
+                            type="text"
+                            placeholder="ex: 19:30"
+                            value={editForm.eventTime}
+                            onChange={e => setEditForm({ ...editForm, eventTime: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Local</label>
+                        <div className="space-y-1">
+                            <LocationPicker
+                                initialAddress={editForm.location}
+                                onLocationSelect={(addr) => setEditForm(prev => ({ ...prev, location: addr }))}
+                            />
+                            <p className="text-[10px] text-gray-400">Procure e selecione o endereço.</p>
+                        </div>
+                    </div>
+                    <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white">Salvar Alterações</Button>
+                </form>
+            </Modal>
+
+            {/* QR Code Modal */}
+            <Modal
+                isOpen={isQrModalOpen}
+                onClose={() => setIsQrModalOpen(false)}
+                title="QR Code do Evento"
+                description="Compartilhe este código para seus convidados acessarem a lista."
+            >
+                <div className="flex flex-col items-center justify-center p-6 space-y-6">
+                    <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100">
+                        <QRCode
+                            value={`${window.location.origin}/list/${list.slug}`}
+                            size={200}
+                            fgColor="#db2777" // pink-600
+                        />
+                    </div>
+                    <p className="text-sm text-center text-gray-500">
+                        Salve a imagem ou mostre na tela para escanear.
+                        <br />
+                        <span className="font-bold text-gray-900">{list.title}</span>
+                    </p>
+                    <Button variant="outline" onClick={() => window.print()} className="w-full">
+                        🖨️ Imprimir
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 }
